@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>긴긴밤 - The Long, Long Night</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg-primary:#0a0a12;--bg-secondary:#12121f;--bg-tertiary:#1a1a2e;
+--text-primary:#e8e8f0;--text-secondary:#a0a0b8;--text-accent:#f0d080;
+--ui-border:#2a2a4a;--ui-panel:rgba(10,10,18,0.92);
+--hope-color:#f0d080;--danger-color:#c04040;
+--skin-name:"밤";
+}
+[data-skin="twilight"]{
+--bg-primary:#1a0a2a;--bg-secondary:#2a1a3a;--bg-tertiary:#3a2a4a;
+--text-primary:#e8d8f0;--text-secondary:#b8a0c8;--text-accent:#e0a0f0;
+--ui-border:#4a3a5a;--ui-panel:rgba(26,10,42,0.92);
+--hope-color:#e0a0f0;--skin-name:"황혼";
+}
+[data-skin="winter"]{
+--bg-primary:#0a1a2a;--bg-secondary:#0a2040;--bg-tertiary:#103050;
+--text-primary:#d8e8f8;--text-secondary:#90b0d0;--text-accent:#80d0f0;
+--ui-border:#2a4a6a;--ui-panel:rgba(10,26,42,0.92);
+--hope-color:#80d0f0;--skin-name:"겨울";
+}
+[data-skin="sakura"]{
+--bg-primary:#2a1a1a;--bg-secondary:#3a2028;--bg-tertiary:#4a2830;
+--text-primary:#f8e0e0;--text-secondary:#d0a0a8;--text-accent:#f0a0b0;
+--ui-border:#5a3840;--ui-panel:rgba(42,26,26,0.92);
+--hope-color:#f0a0b0;--skin-name:"벚꽃";
+}
+[data-skin="oldbook"]{
+--bg-primary:#1a1810;--bg-secondary:#2a2618;--bg-tertiary:#3a3420;
+--text-primary:#e8e0d0;--text-secondary:#b8b098;--text-accent:#d0b060;
+--ui-border:#4a4430;--ui-panel:rgba(26,24,16,0.92);
+--hope-color:#d0b060;--skin-name:"오래된 책";
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sans KR',sans-serif;overflow:hidden;width:100vw;height:100vh;touch-action:none;user-select:none;-webkit-user-select:none;}
+#game{position:relative;width:100vw;height:100vh;overflow:hidden;}
+#scene{position:absolute;top:0;left:0;width:100%;height:100%;transition:opacity 0.5s;}
+.scene-bg{position:absolute;top:0;left:0;width:100%;height:100%;}
+/* HUD */
+#hud{position:absolute;top:0;left:0;right:0;height:48px;display:flex;align-items:center;padding:0 16px;background:linear-gradient(180deg,rgba(0,0,0,0.6),transparent);z-index:50;pointer-events:none;}
+#hud>*{pointer-events:auto;}
+#chapter-label{font-family:'Noto Serif KR',serif;font-size:14px;color:var(--text-secondary);margin-right:16px;}
+#hope-bar-wrap{flex:1;max-width:200px;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;margin-right:8px;}
+#hope-bar{height:100%;background:var(--hope-color);border-radius:4px;transition:width 0.8s ease;}
+#hope-label{font-size:12px;color:var(--text-accent);margin-right:16px;min-width:30px;}
+.hud-btn{background:none;border:1px solid var(--ui-border);color:var(--text-secondary);font-size:13px;padding:4px 10px;border-radius:4px;cursor:pointer;margin-left:6px;font-family:inherit;}
+.hud-btn:hover{background:var(--bg-tertiary);color:var(--text-primary);}
+/* Dialogue */
+#dialogue-box{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);width:min(90%,700px);background:var(--ui-panel);border:1px solid var(--ui-border);border-radius:12px;padding:20px 24px;z-index:60;display:none;backdrop-filter:blur(8px);}
+#dialogue-speaker{font-family:'Noto Serif KR',serif;font-size:14px;color:var(--text-accent);margin-bottom:8px;}
+#dialogue-text{font-size:15px;line-height:1.7;color:var(--text-primary);min-height:48px;}
+#dialogue-next{position:absolute;bottom:8px;right:16px;font-size:11px;color:var(--text-secondary);animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+/* Choices */
+#choices-box{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);width:min(90%,500px);z-index:65;display:none;flex-direction:column;gap:10px;}
+.choice-btn{background:var(--ui-panel);border:1px solid var(--ui-border);color:var(--text-primary);font-size:15px;padding:14px 20px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;transition:all 0.2s;backdrop-filter:blur(8px);}
+.choice-btn:hover{background:var(--bg-tertiary);border-color:var(--text-accent);transform:translateX(4px);}
+/* Inventory */
+#inventory-panel{position:absolute;top:0;right:-320px;width:300px;height:100%;background:var(--ui-panel);border-left:1px solid var(--ui-border);z-index:80;transition:right 0.3s;padding:20px;overflow-y:auto;backdrop-filter:blur(8px);}
+#inventory-panel.open{right:0;}
+#inventory-panel h3{font-family:'Noto Serif KR',serif;color:var(--text-accent);margin-bottom:16px;font-size:18px;}
+.inv-item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--ui-border);border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);}
+.inv-icon{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.inv-info{flex:1;}
+.inv-name{font-size:13px;color:var(--text-primary);font-weight:700;}
+.inv-desc{font-size:11px;color:var(--text-secondary);margin-top:2px;}
+#inv-empty{color:var(--text-secondary);font-size:13px;font-style:italic;}
+/* Skin panel */
+#skin-panel{position:absolute;top:50px;right:10px;background:var(--ui-panel);border:1px solid var(--ui-border);border-radius:10px;padding:12px;z-index:90;display:none;backdrop-filter:blur(8px);}
+.skin-option{display:block;width:100%;background:none;border:1px solid var(--ui-border);color:var(--text-primary);font-size:13px;padding:8px 14px;border-radius:6px;cursor:pointer;margin-bottom:4px;font-family:inherit;text-align:left;}
+.skin-option:hover,.skin-option.active{background:var(--bg-tertiary);border-color:var(--text-accent);}
+/* Chapter overlay */
+#chapter-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity 0.6s;}
+#chapter-overlay.show{opacity:1;pointer-events:auto;}
+#chapter-overlay .ch-num{font-family:'Noto Serif KR',serif;font-size:14px;color:var(--text-secondary);letter-spacing:4px;margin-bottom:8px;}
+#chapter-overlay .ch-title{font-family:'Noto Serif KR',serif;font-size:28px;color:var(--text-primary);margin-bottom:12px;}
+#chapter-overlay .ch-sub{font-size:14px;color:var(--text-secondary);}
+/* Cutscene */
+#cutscene{position:absolute;top:0;left:0;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;z-index:95;opacity:0;pointer-events:none;transition:opacity 0.8s;}
+#cutscene.show{opacity:1;pointer-events:auto;}
+#cutscene-text{font-family:'Noto Serif KR',serif;font-size:20px;color:var(--text-primary);text-align:center;line-height:2;max-width:600px;padding:40px;}
+/* Vignette */
+#vignette{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:40;opacity:0;transition:opacity 1s;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.8) 100%);}
+#vignette.show{opacity:1;}
+/* Title screen */
+#title-screen{position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0a12;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+#title-screen h1{font-family:'Noto Serif KR',serif;font-size:48px;color:var(--text-primary);margin-bottom:8px;}
+#title-screen .subtitle{font-size:16px;color:var(--text-secondary);margin-bottom:40px;}
+#start-btn{background:none;border:1px solid var(--text-accent);color:var(--text-accent);font-size:18px;padding:12px 40px;border-radius:8px;cursor:pointer;font-family:'Noto Serif KR',serif;transition:all 0.3s;}
+#start-btn:hover{background:rgba(240,208,128,0.1);}
+/* Ending */
+#ending-screen{position:absolute;top:0;left:0;width:100%;height:100%;background:#000;z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;}
+#ending-screen h2{font-family:'Noto Serif KR',serif;font-size:32px;color:var(--text-accent);margin-bottom:16px;}
+#ending-screen p{font-size:16px;color:var(--text-primary);line-height:1.8;max-width:500px;margin-bottom:8px;}
+#ending-screen .end-items{font-size:13px;color:var(--text-secondary);margin:20px 0;}
+#restart-btn{background:none;border:1px solid var(--text-accent);color:var(--text-accent);font-size:16px;padding:10px 32px;border-radius:8px;cursor:pointer;font-family:'Noto Serif KR',serif;margin-top:20px;transition:all 0.3s;}
+#restart-btn:hover{background:rgba(240,208,128,0.1);}
+/* Characters */
+.character{position:absolute;bottom:0;transition:left 0.1s linear,bottom 0.1s;}
+/* Noden - rhino */
+.noden-sprite{width:56px;height:44px;position:relative;}
+.noden-body{position:absolute;width:48px;height:30px;background:linear-gradient(135deg,#8a8a8a,#6a6a6a);border-radius:24px 20px 8px 8px;bottom:10px;left:4px;}
+.noden-head{position:absolute;width:24px;height:20px;background:linear-gradient(135deg,#909090,#707070);border-radius:12px 14px 6px 10px;bottom:22px;left:38px;}
+.noden-horn{position:absolute;width:6px;height:14px;background:linear-gradient(to top,#b0a080,#d0c8a0);border-radius:3px 3px 1px 1px;bottom:36px;left:48px;transform:rotate(-10deg);}
+.noden-eye{position:absolute;width:4px;height:4px;background:#222;border-radius:50%;bottom:30px;left:50px;}
+.noden-ear{position:absolute;width:8px;height:6px;background:#808080;border-radius:50% 50% 0 0;bottom:38px;left:40px;}
+.noden-leg{position:absolute;width:8px;height:12px;background:#6a6a6a;border-radius:0 0 3px 3px;bottom:0;}
+.noden-leg.fl{left:12px;}.noden-leg.fr{left:22px;}.noden-leg.bl{left:32px;}.noden-leg.br{left:40px;}
+.noden-tail{position:absolute;width:3px;height:10px;background:#5a5a5a;border-radius:2px;bottom:18px;left:0;transform-origin:top center;}
+/* Walking animation */
+.character.walking .noden-leg.fl,.character.walking .noden-leg.br{animation:legWalkA 0.35s infinite alternate;}
+.character.walking .noden-leg.fr,.character.walking .noden-leg.bl{animation:legWalkB 0.35s infinite alternate;}
+.character.walking .noden-tail{animation:tailWag 0.4s infinite alternate;}
+@keyframes legWalkA{0%{transform:rotate(-12deg);}100%{transform:rotate(12deg);}}
+@keyframes legWalkB{0%{transform:rotate(12deg);}100%{transform:rotate(-12deg);}}
+@keyframes tailWag{0%{transform:rotate(-15deg);}100%{transform:rotate(15deg);}}
+.character.face-left .noden-sprite{transform:scaleX(-1);}
+/* Chiku - penguin */
+.chiku-sprite{width:32px;height:38px;position:relative;}
+.chiku-body{position:absolute;width:26px;height:28px;background:linear-gradient(135deg,#1a1a2a,#0a0a1a);border-radius:13px 13px 8px 8px;bottom:6px;left:3px;}
+.chiku-belly{position:absolute;width:16px;height:18px;background:linear-gradient(180deg,#f0f0f0,#e0e0e0);border-radius:8px;bottom:8px;left:8px;}
+.chiku-beak{position:absolute;width:8px;height:5px;background:#e08020;border-radius:0 0 4px 4px;bottom:28px;left:14px;}
+.chiku-eye{position:absolute;width:3px;height:3px;background:#fff;border-radius:50%;bottom:30px;}
+.chiku-eye.l{left:10px;}.chiku-eye.r{left:19px;}
+.chiku-foot{position:absolute;width:10px;height:4px;background:#d07020;border-radius:0 0 5px 5px;bottom:0;}
+.chiku-foot.l{left:3px;}.chiku-foot.r{left:17px;}
+.chiku-egg{position:absolute;width:10px;height:12px;background:linear-gradient(180deg,#f8f8f0,#e8e0d0);border-radius:50%;bottom:10px;left:16px;border:1px solid rgba(0,0,0,0.1);}
+.character.walking .chiku-foot.l{animation:pengWalkA 0.3s infinite alternate;}
+.character.walking .chiku-foot.r{animation:pengWalkB 0.3s infinite alternate;}
+@keyframes pengWalkA{0%{transform:rotate(-8deg);}100%{transform:rotate(8deg);}}
+@keyframes pengWalkB{0%{transform:rotate(8deg);}100%{transform:rotate(-8deg);}}
+.character.face-left .chiku-sprite{transform:scaleX(-1);}
+/* Baby penguin */
+.baby-sprite{width:20px;height:24px;position:relative;}
+.baby-body{position:absolute;width:16px;height:16px;background:#2a2a3a;border-radius:8px 8px 5px 5px;bottom:4px;left:2px;}
+.baby-belly{position:absolute;width:10px;height:10px;background:#f0f0f0;border-radius:5px;bottom:5px;left:5px;}
+.baby-fluff{position:absolute;width:20px;height:10px;background:radial-gradient(ellipse,rgba(180,180,200,0.4),transparent);border-radius:50%;bottom:12px;left:0;}
+.baby-beak{position:absolute;width:5px;height:3px;background:#e08020;border-radius:0 0 3px 3px;bottom:16px;left:9px;}
+.baby-eye{position:absolute;width:3px;height:3px;background:#fff;border-radius:50%;bottom:17px;}
+.baby-eye.l{left:6px;}.baby-eye.r{left:12px;}
+.baby-foot{position:absolute;width:7px;height:3px;background:#d07020;border-radius:0 0 4px 4px;bottom:0;}
+.baby-foot.l{left:1px;}.baby-foot.r{left:11px;}
+.character.walking .baby-foot.l{animation:pengWalkA 0.3s infinite alternate;}
+.character.walking .baby-foot.r{animation:pengWalkB 0.3s infinite alternate;}
+.character.face-left .baby-sprite{transform:scaleX(-1);}
+/* NPC generic */
+.npc-sprite{position:relative;pointer-events:none;}
+.npc-label{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text-accent);white-space:nowrap;pointer-events:none;}
+.interact-hint{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text-accent);white-space:nowrap;animation:blink 1s infinite;pointer-events:none;display:none;}
+/* Scene elements */
+.scene-element{position:absolute;pointer-events:none;}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle var(--dur,3s) infinite alternate;}
+@keyframes twinkle{0%{opacity:0.3;transform:scale(0.8);}100%{opacity:1;transform:scale(1.2);}}
+.grass{position:absolute;bottom:0;width:6px;height:18px;background:linear-gradient(to top,#2a4a20,#3a6a30);border-radius:3px 3px 0 0;transform-origin:bottom center;animation:sway 2s infinite alternate ease-in-out;}
+@keyframes sway{0%{transform:rotate(-5deg);}100%{transform:rotate(5deg);}}
+.rain{position:absolute;width:1px;height:12px;background:linear-gradient(to bottom,transparent,rgba(150,180,220,0.6));animation:fall var(--dur,1s) linear infinite;top:var(--top,-20px);left:var(--left,50%);}
+@keyframes fall{0%{transform:translateY(-20px);opacity:1;}100%{transform:translateY(100vh);opacity:0;}}
+/* Ground */
+.ground{position:absolute;bottom:0;left:0;width:100%;pointer-events:none;}
+/* D-pad mobile */
+#dpad{position:absolute;bottom:20px;left:20px;z-index:70;display:none;}
+.dpad-btn{position:absolute;width:44px;height:44px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,255,255,0.6);-webkit-tap-highlight-color:transparent;}
+.dpad-btn:active{background:rgba(255,255,255,0.25);}
+.dpad-up{left:48px;top:0;}.dpad-down{left:48px;top:96px;}.dpad-left{left:0;top:48px;}.dpad-right{left:96px;top:48px;}
+#mobile-actions{position:absolute;bottom:20px;right:20px;z-index:70;display:none;gap:10px;}
+.mobile-btn{width:50px;height:50px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(255,255,255,0.7);-webkit-tap-highlight-color:transparent;}
+.mobile-btn:active{background:rgba(255,255,255,0.25);}
+/* Responsive */
+@media(max-width:768px){
+  #dpad{display:block;}
+  #mobile-actions{display:flex;}
+  #dialogue-box{bottom:160px;width:92%;}
+  #choices-box{bottom:160px;}
+  #hud{height:40px;}
+  #chapter-overlay .ch-title{font-size:22px;}
+}
+/* Music toggle */
+#music-btn{position:absolute;top:10px;left:10px;z-index:55;}
+</style>
+</head>
+<body>
+<div id="game">
+  <!-- Title -->
+  <div id="title-screen">
+    <h1>긴긴밤</h1>
+    <div class="subtitle">The Long, Long Night</div>
+    <button id="start-btn">여정을 시작하다</button>
+  </div>
+  <!-- Scene container -->
+  <div id="scene"></div>
+  <!-- HUD -->
+  <div id="hud" style="display:none;">
+    <div id="chapter-label"></div>
+    <div id="hope-bar-wrap"><div id="hope-bar" style="width:60%"></div></div>
+    <div id="hope-label">60</div>
+    <button class="hud-btn" id="music-btn" title="음악">&#9835;</button>
+    <button class="hud-btn" id="inv-btn" title="소지품 (I)">소지품</button>
+    <button class="hud-btn" id="skin-btn" title="테마">테마</button>
+  </div>
+  <!-- Dialogue -->
+  <div id="dialogue-box">
+    <div id="dialogue-speaker"></div>
+    <div id="dialogue-text"></div>
+    <div id="dialogue-next">Space / 클릭 &#9654;</div>
+  </div>
+  <!-- Choices -->
+  <div id="choices-box"></div>
+  <!-- Inventory -->
+  <div id="inventory-panel">
+    <h3>소지품</h3>
+    <div id="inv-list"><div id="inv-empty">아직 아무것도 없습니다...</div></div>
+  </div>
+  <!-- Skin panel -->
+  <div id="skin-panel">
+    <button class="skin-option active" data-skin="">밤 (기본)</button>
+    <button class="skin-option" data-skin="twilight">황혼</button>
+    <button class="skin-option" data-skin="winter">겨울</button>
+    <button class="skin-option" data-skin="sakura">벚꽃</button>
+    <button class="skin-option" data-skin="oldbook">오래된 책</button>
+  </div>
+  <!-- Chapter overlay -->
+  <div id="chapter-overlay">
+    <div class="ch-num"></div>
+    <div class="ch-title"></div>
+    <div class="ch-sub"></div>
+  </div>
+  <!-- Cutscene -->
+  <div id="cutscene"><div id="cutscene-text"></div></div>
+  <!-- Vignette -->
+  <div id="vignette"></div>
+  <!-- Ending -->
+  <div id="ending-screen">
+    <h2 id="ending-title"></h2>
+    <p id="ending-text"></p>
+    <div id="ending-items" class="end-items"></div>
+    <button id="restart-btn">다시 시작하기</button>
+  </div>
+  <!-- Mobile controls -->
+  <div id="dpad">
+    <div class="dpad-btn dpad-up" data-dir="up">&#9650;</div>
+    <div class="dpad-btn dpad-down" data-dir="down">&#9660;</div>
+    <div class="dpad-btn dpad-left" data-dir="left">&#9664;</div>
+    <div class="dpad-btn dpad-right" data-dir="right">&#9654;</div>
+  </div>
+  <div id="mobile-actions">
+    <div class="mobile-btn" id="m-interact">Act</div>
+    <div class="mobile-btn" id="m-inv">I</div>
+  </div>
+</div>
+<script>
+// ===== GAME ENGINE =====
+const $ = id => document.getElementById(id);
+const GS = {
+  chapter: 0, hope: 60, items: [], flags: {},
+  px: 200, py: 0, companion: null, babyPenguin: false,
+  transitioning: false, dialogueActive: false, choiceActive: false,
+  musicOn: true, sceneKey: '', facing: 'right',
+  moving: { up:false, down:false, left:false, right:false }
+};
+
+// ===== AUDIO ENGINE =====
+let audioCtx, masterGain, musicGain, sfxGain, currentMusic = null;
+function initAudio(){
+  if(audioCtx) return;
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  masterGain = audioCtx.createGain(); masterGain.gain.value=0.3; masterGain.connect(audioCtx.destination);
+  musicGain = audioCtx.createGain(); musicGain.gain.value=0.5; musicGain.connect(masterGain);
+  sfxGain = audioCtx.createGain(); sfxGain.gain.value=0.6; sfxGain.connect(masterGain);
+}
+function toggleMusic(){
+  GS.musicOn=!GS.musicOn;
+  if(musicGain) musicGain.gain.value=GS.musicOn?0.5:0;
+  $('music-btn').style.opacity=GS.musicOn?1:0.4;
+}
+function playNote(freq, dur, type='sine', gain=0.15, dest=null){
+  if(!audioCtx)return;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type; o.frequency.value=freq;
+  g.gain.setValueAtTime(gain, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+  o.connect(g); g.connect(dest||musicGain);
+  o.start(); o.stop(audioCtx.currentTime+dur);
+}
+function playSfx(type){
+  if(!audioCtx)return;
+  if(type==='item'){
+    [523,659,784].forEach((f,i)=>setTimeout(()=>playNote(f,0.15,'triangle',0.2,sfxGain),i*80));
+  } else if(type==='sad'){
+    [440,392,349].forEach((f,i)=>setTimeout(()=>playNote(f,0.4,'sine',0.15,sfxGain),i*200));
+  } else if(type==='hope'){
+    [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playNote(f,0.2,'triangle',0.15,sfxGain),i*100));
+  }
+}
+// Procedural music loops
+const SCALES = {
+  orphanage: [220,261,293,349,392,440,523], // Am warm
+  savanna: [293,329,392,440,523,587,659], // D major bright
+  zoo: [233,261,311,349,415,466,523], // Bb minor cold
+  escape: [329,392,466,523,587,659,784], // E minor tense
+  forest: [261,293,349,392,440,523,587], // C major gentle
+  journey: [220,261,329,392,440,523,659], // Am pentatonic-ish
+  farewell: [196,220,261,293,349,392,440], // G minor sad
+  sea: [329,392,440,523,587,659,784] // E major bright
+};
+let musicInterval=null;
+function startMusic(key){
+  stopMusic();
+  if(!audioCtx)return;
+  const scale=SCALES[key]||SCALES.journey;
+  let idx=0;
+  const tempos={orphanage:600,savanna:450,zoo:700,escape:280,forest:550,journey:500,farewell:650,sea:400};
+  const tempo=tempos[key]||500;
+  const types={zoo:'square',escape:'sawtooth'};
+  const type=types[key]||'sine';
+  const gains={orphanage:0.08,farewell:0.07,sea:0.1};
+  const gain=gains[key]||0.08;
+  musicInterval=setInterval(()=>{
+    if(!GS.musicOn)return;
+    const note=scale[idx%scale.length];
+    const octave=Math.random()>0.7?2:1;
+    playNote(note*octave, tempo/1000*1.5, type, gain);
+    if(Math.random()>0.5){
+      const harm=scale[(idx+2)%scale.length];
+      setTimeout(()=>playNote(harm*octave, tempo/1000, type, gain*0.5), tempo*0.25);
+    }
+    idx++;
+  }, tempo);
+}
+function stopMusic(){ if(musicInterval){clearInterval(musicInterval);musicInterval=null;} }
+
+// ===== SCENE SYSTEM =====
+function buildScene(key){
+  GS.sceneKey=key;
+  const sc=$('scene');
+  sc.innerHTML='';
+  const def=SCENES[key];
+  if(!def)return;
+  // Background
+  const bg=document.createElement('div');
+  bg.className='scene-bg';
+  bg.style.background=def.bg;
+  sc.appendChild(bg);
+  // Ground
+  if(def.ground){
+    const g=document.createElement('div');
+    g.className='ground';
+    g.style.height=def.ground.height||'80px';
+    g.style.background=def.ground.bg;
+    sc.appendChild(g);
+  }
+  // Stars
+  if(def.stars){
+    for(let i=0;i<def.stars;i++){
+      const s=document.createElement('div');
+      s.className='star';
+      s.style.left=Math.random()*100+'%';
+      s.style.top=Math.random()*50+'%';
+      s.style.setProperty('--dur',(2+Math.random()*4)+'s');
+      s.style.width=(1+Math.random()*2)+'px';
+      s.style.height=s.style.width;
+      sc.appendChild(s);
+    }
+  }
+  // Rain
+  if(def.rain){
+    for(let i=0;i<60;i++){
+      const r=document.createElement('div');
+      r.className='rain';
+      r.style.setProperty('--left',Math.random()*100+'%');
+      r.style.setProperty('--dur',(0.5+Math.random()*0.5)+'s');
+      r.style.animationDelay=Math.random()*2+'s';
+      sc.appendChild(r);
+    }
+  }
+  // Grass
+  if(def.grassCount){
+    for(let i=0;i<def.grassCount;i++){
+      const g=document.createElement('div');
+      g.className='grass';
+      g.style.left=Math.random()*100+'%';
+      g.style.height=(12+Math.random()*14)+'px';
+      g.style.animationDelay=Math.random()*2+'s';
+      if(def.grassColor)g.style.background=def.grassColor;
+      sc.appendChild(g);
+    }
+  }
+  // Decorations
+  if(def.decorations){
+    def.decorations.forEach(d=>{
+      const el=document.createElement('div');
+      el.className='scene-element';
+      el.style.cssText=d.style;
+      el.innerHTML=d.html||'';
+      sc.appendChild(el);
+    });
+  }
+  // NPCs
+  if(def.npcs){
+    def.npcs.forEach(npc=>{
+      if(npc.condition && !npc.condition()) return;
+      const el=document.createElement('div');
+      el.className='character npc';
+      el.dataset.id=npc.id;
+      el.style.left=npc.x+'px';
+      el.style.bottom=(def.ground?parseInt(def.ground.height)||80:80)+'px';
+      el.innerHTML=`<div class="interact-hint">Space / 클릭</div><div class="npc-label">${npc.name}</div>${npc.sprite}`;
+      el.style.cursor='pointer';
+      el.style.pointerEvents='auto';
+      el.addEventListener('click',()=>interactWithNPC(npc));
+      sc.appendChild(el);
+    });
+  }
+  // Items on ground
+  if(def.groundItems){
+    def.groundItems.forEach(gi=>{
+      if(gi.condition && !gi.condition()) return;
+      if(GS.items.find(it=>it.id===gi.id)) return;
+      const el=document.createElement('div');
+      el.className='scene-element';
+      el.dataset.itemId=gi.id;
+      el.style.position='absolute';
+      el.style.left=gi.x+'px';
+      el.style.bottom=(def.ground?parseInt(def.ground.height)||80:80)+'px';
+      el.style.fontSize='24px';
+      el.style.cursor='pointer';
+      el.style.pointerEvents='auto';
+      el.style.animation='blink 1.5s infinite';
+      el.textContent=gi.icon;
+      el.addEventListener('click',()=>pickupItem(gi));
+      sc.appendChild(el);
+    });
+  }
+  // Player
+  createPlayer(sc, def);
+  // Companion
+  if(GS.companion==='chiku') createCompanion(sc, def, 'chiku');
+  if(GS.babyPenguin) createCompanion(sc, def, 'baby');
+  // Music
+  if(def.music) startMusic(def.music);
+}
+
+function createPlayer(sc, def){
+  const el=document.createElement('div');
+  el.id='player';
+  el.className='character';
+  const groundH=def.ground?parseInt(def.ground.height)||80:80;
+  el.style.bottom=groundH+'px';
+  el.style.left=GS.px+'px';
+  el.innerHTML=`<div class="noden-sprite">
+    <div class="noden-tail"></div>
+    <div class="noden-body"></div>
+    <div class="noden-head"></div>
+    <div class="noden-horn"></div>
+    <div class="noden-ear"></div>
+    <div class="noden-eye"></div>
+    <div class="noden-leg fl"></div>
+    <div class="noden-leg fr"></div>
+    <div class="noden-leg bl"></div>
+    <div class="noden-leg br"></div>
+  </div>`;
+  sc.appendChild(el);
+}
+
+function createCompanion(sc, def, type){
+  const el=document.createElement('div');
+  el.id='companion';
+  el.className='character';
+  const groundH=def.ground?parseInt(def.ground.height)||80:80;
+  el.style.bottom=groundH+'px';
+  el.style.left=(GS.px-50)+'px';
+  if(type==='chiku'){
+    const hasEgg=!GS.flags.chikuNoEgg;
+    el.innerHTML=`<div class="chiku-sprite">
+      <div class="chiku-body"></div>
+      <div class="chiku-belly"></div>
+      ${hasEgg?'<div class="chiku-egg"></div>':''}
+      <div class="chiku-beak"></div>
+      <div class="chiku-eye l"></div>
+      <div class="chiku-eye r"></div>
+      <div class="chiku-foot l"></div>
+      <div class="chiku-foot r"></div>
+    </div>`;
+  } else {
+    el.innerHTML=`<div class="baby-sprite">
+      <div class="baby-body"></div>
+      <div class="baby-belly"></div>
+      <div class="baby-fluff"></div>
+      <div class="baby-beak"></div>
+      <div class="baby-eye l"></div>
+      <div class="baby-eye r"></div>
+      <div class="baby-foot l"></div>
+      <div class="baby-foot r"></div>
+    </div>`;
+  }
+  sc.appendChild(el);
+}
+
+// ===== MOVEMENT =====
+const SPEED=3;
+function gameLoop(){
+  if(!GS.transitioning && !GS.dialogueActive && !GS.choiceActive){
+    let dx=0;
+    if(GS.moving.left) dx=-SPEED;
+    if(GS.moving.right) dx=SPEED;
+    if(dx!==0){
+      const def=SCENES[GS.sceneKey];
+      const minX=def?.bounds?.left??20;
+      const maxX=def?.bounds?.right??(window.innerWidth-60);
+      GS.px=Math.max(minX, Math.min(maxX, GS.px+dx));
+      GS.facing=dx>0?'right':'left';
+      const p=$('player');
+      if(p){
+        p.style.left=GS.px+'px';
+        p.classList.add('walking');
+        p.classList.toggle('face-left', GS.facing==='left');
+      }
+      // Companion follow
+      const comp=$('companion');
+      if(comp){
+        const cx=parseFloat(comp.style.left)||0;
+        const targetX=GS.px-(GS.facing==='right'?50:-50);
+        const cdx=(targetX-cx)*0.05;
+        comp.style.left=(cx+cdx)+'px';
+        if(Math.abs(cdx)>0.5){
+          comp.classList.add('walking');
+          comp.classList.toggle('face-left',cdx<0);
+        } else {
+          comp.classList.remove('walking');
+        }
+      }
+      // Check exit
+      checkExit();
+      // Check NPC proximity
+      checkNPCProximity();
+    } else {
+      const p=$('player');
+      if(p) p.classList.remove('walking');
+      const comp=$('companion');
+      if(comp) comp.classList.remove('walking');
+    }
+  }
+  requestAnimationFrame(gameLoop);
+}
+
+function checkExit(){
+  const def=SCENES[GS.sceneKey];
+  if(!def||!def.exits||GS.transitioning)return;
+  def.exits.forEach(ex=>{
+    if(ex.condition && !ex.condition()) return;
+    if(Math.abs(GS.px-ex.x)<30){
+      if(ex.type==='scene') loadScene(ex.target, ex.playerX);
+      else if(ex.type==='dialogue') startDialogue(ex.dialogue);
+      else if(ex.type==='chapter') showChapter(ex.chapter, ex.target, ex.playerX);
+    }
+  });
+}
+
+function checkNPCProximity(){
+  const npcs=document.querySelectorAll('.npc');
+  npcs.forEach(n=>{
+    const nx=parseFloat(n.style.left)||0;
+    const hint=n.querySelector('.interact-hint');
+    if(hint) hint.style.display=Math.abs(GS.px-nx)<60?'block':'none';
+  });
+}
+
+// ===== DIALOGUE SYSTEM =====
+let dialogueQueue=[], dlgIdx=0, typeTimer=null, fullText='';
+function startDialogue(lines){
+  if(GS.dialogueActive)return;
+  dialogueQueue=typeof lines==='function'?lines():lines;
+  dlgIdx=0;
+  GS.dialogueActive=true;
+  $('dialogue-box').style.display='block';
+  showLine();
+}
+function showLine(){
+  if(dlgIdx>=dialogueQueue.length){ endDialogue(); return; }
+  const line=dialogueQueue[dlgIdx];
+  // Check for special actions
+  if(line.action){
+    line.action();
+    dlgIdx++;
+    showLine();
+    return;
+  }
+  if(line.choice){
+    endDialogue();
+    showChoices(line.choice);
+    return;
+  }
+  $('dialogue-speaker').textContent=line.speaker||'';
+  fullText=typeof line.text==='function'?line.text():line.text;
+  $('dialogue-text').textContent='';
+  $('dialogue-next').style.display='none';
+  let ci=0;
+  clearInterval(typeTimer);
+  typeTimer=setInterval(()=>{
+    if(ci<fullText.length){
+      $('dialogue-text').textContent+=fullText[ci]; ci++;
+    } else {
+      clearInterval(typeTimer);
+      $('dialogue-next').style.display='block';
+    }
+  },30);
+}
+function advanceDialogue(){
+  if(!GS.dialogueActive)return;
+  if($('dialogue-text').textContent.length<fullText.length){
+    clearInterval(typeTimer);
+    $('dialogue-text').textContent=fullText;
+    $('dialogue-next').style.display='block';
+  } else {
+    dlgIdx++;
+    showLine();
+  }
+}
+function endDialogue(){
+  GS.dialogueActive=false;
+  $('dialogue-box').style.display='none';
+  clearInterval(typeTimer);
+}
+
+// ===== CHOICES =====
+function showChoices(choices){
+  GS.choiceActive=true;
+  const box=$('choices-box');
+  box.innerHTML='';
+  box.style.display='flex';
+  choices.forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.textContent=c.text;
+    btn.addEventListener('click',()=>{
+      box.style.display='none';
+      GS.choiceActive=false;
+      if(c.action) c.action();
+      if(c.flag) GS.flags[c.flag]=c.flagValue!==undefined?c.flagValue:true;
+      if(c.hope) changeHope(c.hope);
+      if(c.next) startDialogue(c.next);
+      if(c.scene) loadScene(c.scene, c.playerX);
+      if(c.chapter) showChapter(c.chapter, c.scene, c.playerX);
+    });
+    box.appendChild(btn);
+  });
+}
+
+// ===== INVENTORY =====
+function addItem(item){
+  if(GS.items.find(i=>i.id===item.id))return;
+  GS.items.push(item);
+  playSfx('item');
+  renderInventory();
+  // Flash notification
+  const notif=document.createElement('div');
+  notif.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--ui-panel);border:1px solid var(--text-accent);color:var(--text-accent);padding:8px 20px;border-radius:8px;font-size:13px;z-index:100;animation:fadeInOut 2s forwards;';
+  notif.textContent=`${item.icon} ${item.name} 획득!`;
+  document.body.appendChild(notif);
+  setTimeout(()=>notif.remove(),2000);
+}
+function renderInventory(){
+  const list=$('inv-list');
+  if(GS.items.length===0){ list.innerHTML='<div id="inv-empty">아직 아무것도 없습니다...</div>'; return; }
+  list.innerHTML='';
+  GS.items.forEach(it=>{
+    const d=document.createElement('div');
+    d.className='inv-item';
+    d.innerHTML=`<div class="inv-icon">${it.icon}</div><div class="inv-info"><div class="inv-name">${it.name}</div><div class="inv-desc">${it.desc}</div></div>`;
+    list.appendChild(d);
+  });
+}
+function pickupItem(gi){
+  addItem({id:gi.id, name:gi.name, icon:gi.icon, desc:gi.desc});
+  const el=document.querySelector(`[data-item-id="${gi.id}"]`);
+  if(el) el.remove();
+  if(gi.dialogue) startDialogue(gi.dialogue);
+}
+function toggleInventory(){
+  $('inventory-panel').classList.toggle('open');
+}
+
+// ===== HOPE =====
+function changeHope(delta){
+  GS.hope=Math.max(0,Math.min(100,GS.hope+delta));
+  $('hope-bar').style.width=GS.hope+'%';
+  $('hope-label').textContent=GS.hope;
+  if(delta>0) playSfx('hope');
+  if(delta<0) playSfx('sad');
+}
+
+// ===== SCENE TRANSITIONS =====
+function loadScene(key, playerX){
+  if(GS.transitioning)return;
+  GS.transitioning=true;
+  GS.moving={up:false,down:false,left:false,right:false};
+  $('scene').style.opacity=0;
+  setTimeout(()=>{
+    if(playerX!==undefined) GS.px=playerX;
+    buildScene(key);
+    updateHUD();
+    $('scene').style.opacity=1;
+    setTimeout(()=>{GS.transitioning=false;},300);
+  },500);
+}
+function showChapter(ch, target, playerX){
+  if(GS.transitioning)return;
+  GS.transitioning=true;
+  GS.moving={up:false,down:false,left:false,right:false};
+  GS.chapter=ch;
+  const info=CHAPTER_INFO[ch];
+  const ov=$('chapter-overlay');
+  ov.querySelector('.ch-num').textContent=`제 ${ch}장`;
+  ov.querySelector('.ch-title').textContent=info?.title||'';
+  ov.querySelector('.ch-sub').textContent=info?.sub||'';
+  ov.classList.add('show');
+  setTimeout(()=>{
+    ov.classList.remove('show');
+    if(playerX!==undefined) GS.px=playerX;
+    buildScene(target);
+    updateHUD();
+    $('scene').style.opacity=1;
+    setTimeout(()=>{GS.transitioning=false;},500);
+  },2500);
+}
+function showCutscene(lines, callback){
+  GS.transitioning=true;
+  const cs=$('cutscene');
+  const ct=$('cutscene-text');
+  cs.classList.add('show');
+  $('vignette').classList.add('show');
+  let idx=0;
+  function showNext(){
+    if(idx>=lines.length){
+      cs.classList.remove('show');
+      $('vignette').classList.remove('show');
+      GS.transitioning=false;
+      if(callback) callback();
+      return;
+    }
+    ct.style.opacity=0;
+    setTimeout(()=>{
+      ct.textContent=lines[idx];
+      ct.style.opacity=1;
+      ct.style.transition='opacity 0.8s';
+      idx++;
+      setTimeout(showNext, 2500);
+    },500);
+  }
+  showNext();
+}
+function updateHUD(){
+  const info=CHAPTER_INFO[GS.chapter];
+  $('chapter-label').textContent=info?`${info.title}`:'';
+}
+
+// ===== NPC INTERACT =====
+function interactWithNPC(npc){
+  if(Math.abs(GS.px-(npc.x||0))>80)return;
+  if(npc.dialogue){
+    const d=typeof npc.dialogue==='function'?npc.dialogue():npc.dialogue;
+    startDialogue(d);
+  }
+}
+
+// ===== SKINS =====
+function applySkin(name){
+  document.documentElement.dataset.skin=name||'';
+  localStorage.setItem('ggg-skin',name||'');
+  document.querySelectorAll('.skin-option').forEach(b=>{
+    b.classList.toggle('active',b.dataset.skin===name);
+  });
+}
+
+// ===== ENDING =====
+function showEnding(type){
+  stopMusic();
+  GS.transitioning=true;
+  const endings={
+    hope:{
+      title:'희망의 빛',
+      text:'새끼 펭귄은 처음으로 넓은 바다를 보았습니다.\n\n작은 날개를 펄럭이며 파도 속으로 들어가는 모습을 바라보며,\n노든은 오랜 세월 동안 가슴에 품어왔던 무거운 짐이\n조금씩 내려놓아지는 것을 느꼈습니다.\n\n긴긴밤이 끝나고, 마침내 아침이 왔습니다.'
+    },
+    together:{
+      title:'함께하는 아침',
+      text:'노든과 작은 펭귄은 바닷가에 나란히 섰습니다.\n\n혼자였던 시간, 함께했던 시간,\n그리고 앞으로 함께할 시간.\n\n파도 소리가 두 친구의 새로운 시작을 축하하듯\n부드럽게 울려 퍼졌습니다.\n\n이제 긴긴밤은 끝났고, 따뜻한 아침이 시작됩니다.'
+    },
+    memory:{
+      title:'기억의 별',
+      text:'노든은 품 안의 조약돌을 만져보았습니다.\n코끼리 아줌마의 따뜻한 목소리,\n함께 달렸던 초원의 바람,\n앙가부가 지켜준 그 밤,\n치쿠의 작은 숨소리...\n\n모든 만남이 별이 되어 밤하늘을 가득 채웠습니다.\n그리고 그 별빛 아래, 작은 펭귄이 첫 파도를 만났습니다.\n\n긴긴밤의 별들은 영원히 빛나고 있었습니다.'
+    }
+  };
+  const e=endings[type]||endings.hope;
+  $('ending-title').textContent=e.title;
+  $('ending-text').textContent=e.text;
+  $('ending-items').textContent=GS.items.length>0?'수집한 기억: '+GS.items.map(i=>i.icon+' '+i.name).join(', '):'';
+  $('ending-screen').style.display='flex';
+  // Ending music
+  if(audioCtx){
+    setTimeout(()=>{
+      [329,392,523,659,784].forEach((f,i)=>setTimeout(()=>playNote(f,1.5,'sine',0.1,sfxGain),i*300));
+    },500);
+  }
+}
+
+function restartGame(){
+  GS.chapter=0; GS.hope=60; GS.items=[]; GS.flags={};
+  GS.px=200; GS.companion=null; GS.babyPenguin=false;
+  GS.transitioning=false; GS.dialogueActive=false; GS.choiceActive=false;
+  GS.facing='right'; GS.moving={up:false,down:false,left:false,right:false};
+  $('ending-screen').style.display='none';
+  $('dialogue-box').style.display='none';
+  $('choices-box').style.display='none';
+  $('vignette').classList.remove('show');
+  $('cutscene').classList.remove('show');
+  $('inventory-panel').classList.remove('open');
+  $('hope-bar').style.width='60%';
+  $('hope-label').textContent='60';
+  renderInventory();
+  stopMusic();
+  showChapter(1,'ch1_orphanage',200);
+}
+
+// ===== CHAPTER INFO =====
+const CHAPTER_INFO={
+  1:{title:'코끼리 고아원',sub:'혼자가 된 아이'},
+  2:{title:'사바나의 가족',sub:'넓은 초원 위의 꿈'},
+  3:{title:'동물원',sub:'철창 너머의 하늘'},
+  4:{title:'탈출',sub:'무너지는 벽'},
+  5:{title:'치쿠와의 탐험',sub:'비 오는 밤의 작은 온기'},
+  6:{title:'긴긴밤의 여정',sub:'별빛 아래 걷는 길'},
+  7:{title:'이별',sub:'가장 어두운 새벽'},
+  8:{title:'바다로',sub:'첫 번째 아침'}
+};
+
+// ===== SCENE DEFINITIONS =====
+const SCENES={
+  // --- CHAPTER 1: Orphanage ---
+  ch1_orphanage:{
+    bg:'linear-gradient(180deg,#0a0a18 0%,#1a1020 40%,#3a2810 70%,#5a4020 100%)',
+    ground:{height:'90px',bg:'linear-gradient(180deg,#4a3020,#3a2418)'},
+    stars:40,
+    grassCount:20,
+    grassColor:'linear-gradient(to top,#3a3020,#5a4a30)',
+    music:'orphanage',
+    bounds:{left:20,right:900},
+    decorations:[
+      {style:'left:100px;bottom:90px;width:80px;height:60px;background:linear-gradient(135deg,#4a3a28,#3a2a1a);border-radius:8px 8px 0 0;opacity:0.6;',html:'<div style="position:absolute;top:10px;left:15px;width:12px;height:15px;background:rgba(255,200,100,0.3);border-radius:2px;"></div>'},
+      {style:'left:400px;bottom:90px;width:120px;height:50px;background:linear-gradient(135deg,#5a4a30,#4a3a20);border-radius:6px;opacity:0.5;'},
+      {style:'left:600px;bottom:90px;font-size:40px;pointer-events:none;opacity:0.3;',html:'&#127795;'}
+    ],
+    npcs:[
+      {id:'elephant',name:'코끼리 아줌마',x:350,
+       sprite:'<div style="width:60px;height:50px;position:relative;pointer-events:none;"><div style="position:absolute;width:50px;height:35px;background:linear-gradient(135deg,#8a8a80,#6a6a60);border-radius:25px 20px 8px 8px;bottom:10px;left:5px;"></div><div style="position:absolute;width:18px;height:25px;background:#7a7a70;border-radius:0 0 8px 8px;bottom:10px;left:35px;transform:rotate(10deg);"></div><div style="position:absolute;width:6px;height:12px;background:#6a6a60;border-radius:0 0 3px 3px;bottom:0;left:10px;"></div><div style="position:absolute;width:6px;height:12px;background:#6a6a60;border-radius:0 0 3px 3px;bottom:0;left:22px;"></div><div style="position:absolute;width:6px;height:12px;background:#6a6a60;border-radius:0 0 3px 3px;bottom:0;left:32px;"></div><div style="position:absolute;width:6px;height:12px;background:#6a6a60;border-radius:0 0 3px 3px;bottom:0;left:42px;"></div><div style="position:absolute;width:3px;height:3px;background:#222;border-radius:50%;bottom:36px;left:44px;"></div></div>',
+       dialogue:()=>[
+         {speaker:'코끼리 아줌마',text:'노든아, 아직 안 잤니? 별이 참 밝은 밤이구나.'},
+         {speaker:'노든',text:'아줌마... 나는 왜 다른 애들이랑 다르게 생겼어요?'},
+         {speaker:'코끼리 아줌마',text:'다르다고? 하하, 네가 특별한 거란다. 너의 엄마도 아주 멋진 코뿔소였어.'},
+         {speaker:'코끼리 아줌마',text:'네 엄마가 남긴 게 하나 있단다. 이 작은 조약돌... 항상 가지고 다녀렴.'},
+         {action:()=>addItem({id:'pebble',name:'엄마의 조약돌',icon:'🪨',desc:'엄마의 기억이 담긴 작고 매끄러운 조약돌'})},
+         {speaker:'코끼리 아줌마',text:'세상은 넓고, 때로는 무섭기도 하지만... 너라면 괜찮을 거야.'},
+         {speaker:'노든',text:'...고마워요, 아줌마.'},
+         {action:()=>changeHope(5)}
+       ]
+      }
+    ],
+    exits:[
+      {x:880,type:'dialogue',dialogue:[
+        {speaker:'노든',text:'(고아원의 끝이다. 저 너머에는 넓은 세상이 있겠지...)'},
+        {choice:[
+          {text:'세상을 보러 떠나볼까',flag:'leftEarly',hope:5,chapter:2,scene:'ch2_savanna',playerX:80},
+          {text:'조금 더 여기 있을까',next:[
+            {speaker:'노든',text:'(아직은... 조금 더 이곳에 있고 싶다.)'},
+            {action:()=>{GS.px=700;GS.transitioning=false;const p=$('player');if(p)p.style.left='700px';}}
+          ]}
+        ]}
+      ]}
+    ]
+  },
+
+  // --- CHAPTER 2: Savanna ---
+  ch2_savanna:{
+    bg:'linear-gradient(180deg,#080818 0%,#0a0a20 30%,#1a1828 60%,#2a2820 100%)',
+    ground:{height:'80px',bg:'linear-gradient(180deg,#3a4a20,#2a3a18)'},
+    stars:60,
+    grassCount:35,
+    music:'savanna',
+    bounds:{left:20,right:1000},
+    decorations:[
+      {style:'left:200px;bottom:80px;width:4px;height:100px;background:#4a3a20;',html:'<div style="position:absolute;top:-20px;left:-20px;width:44px;height:30px;background:radial-gradient(ellipse,#3a5a20,transparent);border-radius:50%;"></div>'},
+      {style:'left:700px;bottom:80px;width:4px;height:80px;background:#4a3a20;',html:'<div style="position:absolute;top:-15px;left:-15px;width:34px;height:25px;background:radial-gradient(ellipse,#3a5a20,transparent);border-radius:50%;"></div>'}
+    ],
+    npcs:[
+      {id:'rhino_family',name:'코뿔소 가족',x:500,
+       sprite:'<div style="width:80px;height:40px;position:relative;pointer-events:none;"><div style="position:absolute;width:40px;height:26px;background:linear-gradient(135deg,#7a7a7a,#5a5a5a);border-radius:18px 15px 6px 6px;bottom:8px;left:0;"></div><div style="position:absolute;width:35px;height:22px;background:linear-gradient(135deg,#8a8a8a,#6a6a6a);border-radius:15px 12px 5px 5px;bottom:8px;left:40px;"></div><div style="position:absolute;width:5px;height:10px;background:#c0b090;border-radius:3px;bottom:28px;left:60px;"></div></div>',
+       dialogue:()=>{
+         if(GS.flags.metFamily) return [
+           {speaker:'코뿔소 가족',text:'노든, 함께라서 좋구나. 오늘 밤 별이 참 많다.'},
+           {speaker:'노든',text:'네... 가족이 있다는 게 이런 거군요.'}
+         ];
+         GS.flags.metFamily=true;
+         return [
+           {speaker:'???',text:'어라? 너... 혹시 코뿔소니?'},
+           {speaker:'노든',text:'네! 저... 코뿔소예요. 처음 만나요, 같은 코뿔소를.'},
+           {speaker:'코뿔소',text:'세상에, 이렇게 어린 코뿔소가 혼자 돌아다니다니. 우리 가족과 함께하지 않을래?'},
+           {speaker:'노든',text:'정말요? 정말... 같이 있어도 돼요?'},
+           {speaker:'코뿔소',text:'물론이지. 여기가 네 자리야, 노든.'},
+           {action:()=>changeHope(15)},
+           {speaker:'',text:'(노든은 생전 처음으로 가족이라는 걸 알게 되었다.)'}
+         ];
+       }
+      }
+    ],
+    groundItems:[
+      {id:'horn_piece',name:'가족의 뿔조각',icon:'🦏',desc:'부서진 뿔의 작은 조각. 가족의 기억.',x:620,
+       condition:()=>GS.flags.poachersAppeared,
+       dialogue:[{speaker:'노든',text:'(이건... 이건 가족의...)'},
+         {action:()=>changeHope(-10)}]
+      }
+    ],
+    exits:[
+      {x:950,type:'dialogue',
+       condition:()=>GS.flags.metFamily,
+       dialogue:[
+         {speaker:'',text:'(행복한 시간이 흐르고 있었다. 그러나...)'},
+         {action:()=>{
+           GS.flags.poachersAppeared=true;
+           $('vignette').classList.add('show');
+           playSfx('sad');
+         }},
+         {speaker:'',text:'어둠 속에서 날카로운 소리가 들렸다.'},
+         {speaker:'',text:'밀렵꾼들이었다.'},
+         {speaker:'',text:'노든은 도망쳤다. 뒤를 돌아볼 수 없었다.'},
+         {speaker:'',text:'...'},
+         {speaker:'',text:'가족은, 더 이상 없었다.'},
+         {action:()=>{
+           changeHope(-20);
+           $('vignette').classList.remove('show');
+         }},
+         {speaker:'노든',text:'(왜... 왜 나만 살아남은 걸까...)'},
+         {choice:[
+           {text:'앞으로 나아간다',chapter:3,scene:'ch3_zoo',playerX:100},
+           {text:'(말없이 걷는다)',hope:-5,chapter:3,scene:'ch3_zoo',playerX:100}
+         ]}
+       ]
+      }
+    ]
+  },
+
+  // --- CHAPTER 3: Zoo ---
+  ch3_zoo:{
+    bg:'linear-gradient(180deg,#0a0a10 0%,#10101a 50%,#1a1a24 100%)',
+    ground:{height:'70px',bg:'linear-gradient(180deg,#3a3a3a,#2a2a2a)'},
+    music:'zoo',
+    bounds:{left:30,right:850},
+    decorations:[
+      // Cage bars
+      ...[0,1,2,3,4,5,6,7,8,9,10,11,12].map(i=>({
+        style:`left:${60+i*70}px;bottom:70px;width:4px;height:200px;background:linear-gradient(180deg,#5a5a5a,#3a3a3a);border-radius:2px;opacity:0.5;`
+      })),
+      {style:'left:0;bottom:260px;width:100%;height:4px;background:#4a4a4a;opacity:0.5;'},
+      {style:'left:50%;bottom:280px;font-size:12px;color:#5a5a5a;transform:translateX(-50%);white-space:nowrap;',html:'[ 시립동물원 - 흰바위코뿔소 ]'}
+    ],
+    npcs:[
+      {id:'angabu',name:'앙가부',x:550,
+       sprite:'<div style="width:40px;height:35px;position:relative;pointer-events:none;"><div style="position:absolute;width:32px;height:24px;background:linear-gradient(135deg,#c08040,#a06830);border-radius:12px;bottom:8px;left:4px;"></div><div style="position:absolute;width:14px;height:12px;background:#b07030;border-radius:7px;bottom:24px;left:20px;"></div><div style="position:absolute;width:3px;height:3px;background:#222;border-radius:50%;bottom:28px;left:28px;"></div><div style="position:absolute;width:6px;height:8px;background:#a06830;border-radius:0 0 3px 3px;bottom:0;left:10px;"></div><div style="position:absolute;width:6px;height:8px;background:#a06830;border-radius:0 0 3px 3px;bottom:0;left:22px;"></div></div>',
+       dialogue:()=>{
+         if(GS.flags.metAngabu) return [
+           {speaker:'앙가부',text:'노든, 오늘도 하늘을 봤어? 저 틈 사이로 보이는 별 말이야.'},
+           {speaker:'노든',text:'응... 작은 별인데, 볼 때마다 조금 위안이 돼.'},
+           {speaker:'앙가부',text:'우리도 언젠가 저 별 아래 서게 될 거야. 믿어.'}
+         ];
+         GS.flags.metAngabu=true;
+         return [
+           {speaker:'???',text:'이봐, 새로 온 거야? 나는 앙가부. 여기 산 지 좀 됐지.'},
+           {speaker:'노든',text:'...나는 노든이야.'},
+           {speaker:'앙가부',text:'그렇게 슬픈 눈을 하고 있구나. 무슨 일이 있었어?'},
+           {speaker:'노든',text:'가족을... 잃었어.'},
+           {speaker:'앙가부',text:'...나도 그래. 여기 있는 건 다 그런 사연이 있어.'},
+           {speaker:'앙가부',text:'하지만 말이야, 나는 포기하지 않아. 언젠가 여기서 나갈 거야.'},
+           {speaker:'앙가부',text:'이거 받아. 내가 아끼는 건데... 너한테 줄게.'},
+           {action:()=>addItem({id:'angabu_gift',name:'앙가부의 선물',icon:'🌰',desc:'앙가부가 소중히 간직하던 작은 도토리'})},
+           {speaker:'노든',text:'...고마워, 앙가부.'},
+           {action:()=>changeHope(10)}
+         ];
+       }
+      }
+    ],
+    exits:[
+      {x:830,type:'dialogue',
+       condition:()=>GS.flags.metAngabu&&!GS.flags.angabuDied,
+       dialogue:[
+         {speaker:'',text:'(어느 날 밤, 동물원에 낯선 사람들이 들어왔다.)'},
+         {speaker:'',text:'(그들의 눈은 어둠 속에서도 차갑게 빛났다. 뿔을 노리는 사냥꾼들이었다.)'},
+         {speaker:'앙가부',text:'노든, 숨어! 저 사람들은 위험해!'},
+         {speaker:'노든',text:'앙가부, 너도 빨리!'},
+         {speaker:'앙가부',text:'나는 괜찮아. 나는 뿔이 없으니까. 빨리 숨어, 노든!'},
+         {speaker:'',text:'(앙가부는 노든을 감추려고 사냥꾼들 앞을 가로막았다.)'},
+         {speaker:'',text:'(총소리가 밤을 찢었다.)'},
+         {action:()=>{playSfx('sad');setSadVignette(true);}},
+         {speaker:'노든',text:'앙가부...!! 안 돼!!'},
+         {speaker:'',text:'(앙가부는 쓰러지면서도 노든을 향해 고개를 돌렸다.)'},
+         {speaker:'앙가부',text:'...도망가, 노든. 살아야 해.'},
+         {speaker:'앙가부',text:'저 별... 기억하지? 거기서... 볼게.'},
+         {speaker:'',text:'(앙가부의 눈이 천천히 감겼다.)'},
+         {action:()=>{GS.flags.angabuDied=true;changeHope(-20);}},
+         {speaker:'노든',text:'앙가부... 앙가부...!'},
+         {speaker:'',text:'(노든은 이를 악물었다. 또 잃었다. 또.)'},
+         {speaker:'',text:'(하지만 앙가부의 마지막 말이 귓가에 맴돌았다. "살아야 해.")'},
+         {speaker:'노든',text:'...살아야 해. 살 거야.'},
+         {action:()=>setSadVignette(false)}
+       ]
+      },
+      {x:830,type:'chapter',chapter:4,target:'ch4_escape',playerX:80,
+       condition:()=>GS.flags.angabuDied}
+    ]
+  },
+
+  // --- CHAPTER 4: Escape ---
+  ch4_escape:{
+    bg:'linear-gradient(180deg,#1a0808 0%,#2a1010 40%,#3a1808 70%,#4a2010 100%)',
+    ground:{height:'70px',bg:'linear-gradient(180deg,#3a2a20,#2a1a10)'},
+    music:'escape',
+    bounds:{left:20,right:900},
+    decorations:[
+      // Fire/smoke effects
+      ...[0,1,2,3,4].map(i=>({
+        style:`left:${100+i*180}px;bottom:70px;width:40px;height:60px;background:radial-gradient(ellipse at bottom,rgba(200,80,20,0.4),transparent);border-radius:50%;animation:sway ${1+Math.random()}s infinite alternate;`
+      })),
+      // Broken bars
+      ...[0,1,2].map(i=>({
+        style:`left:${200+i*120}px;bottom:70px;width:4px;height:80px;background:#4a4a4a;transform:rotate(${-15+i*12}deg);opacity:0.4;`
+      })),
+      {style:'left:50%;top:30px;font-size:14px;color:#c04030;transform:translateX(-50%);white-space:nowrap;animation:blink 0.5s infinite;',html:'폭발음과 비명이 울려 퍼진다'}
+    ],
+    npcs:[
+      {id:'chiku_escape',name:'치쿠',x:500,
+       condition:()=>!GS.flags.metChiku,
+       sprite:'<div style="width:18px;height:22px;position:relative;pointer-events:none;"><div style="position:absolute;bottom:0;left:3px;width:12px;height:16px;background:radial-gradient(ellipse,#1a1a2a,#0a0a15);border-radius:40% 40% 35% 35%;"></div><div style="position:absolute;bottom:1px;left:5px;width:8px;height:10px;background:radial-gradient(ellipse,#f0f0e8,#d8d8d0);border-radius:40% 40% 35% 35%;"></div><div style="position:absolute;top:0;left:3px;width:10px;height:10px;background:radial-gradient(ellipse,#1a1a2a,#0a0a15);border-radius:50%;"></div><div style="position:absolute;top:3px;right:4px;width:2px;height:2px;background:#fff;border-radius:50%;"></div><div style="position:absolute;top:5px;right:1px;width:4px;height:2px;background:#d4a040;clip-path:polygon(0 0,100% 50%,0 100%);"></div><div style="position:absolute;bottom:2px;left:-6px;width:8px;height:10px;background:radial-gradient(ellipse,#f5f0e0,#e0d8c0);border-radius:45% 45% 50% 50%;box-shadow:0 0 4px rgba(255,250,220,.2);"></div></div>',
+       dialogue:()=>[
+         {speaker:'',text:'(연기와 비명 속에서, 작은 그림자가 떨고 있었다.)'},
+         {speaker:'',text:'(알 하나를 꼭 안은 채, 갈 곳을 잃은 작은 펭귄.)'},
+         {speaker:'노든',text:'...거기 괜찮아? 위험해, 빨리 나가야 해!'},
+         {speaker:'???',text:'...알이... 알을 지켜야 해... 이 아이를...'},
+         {speaker:'노든',text:'알? 네 아이야?'},
+         {speaker:'???',text:'나는 치쿠... 이건 내 아이의 알이야. 제발... 도와줘.'},
+         {choice:[
+           {text:'치쿠와 알을 지키며 함께 달린다',flag:'metChiku',hope:10,next:[
+             {speaker:'노든',text:'내 뒤에 붙어. 내가 길을 열게.'},
+             {speaker:'치쿠',text:'...고마워.'},
+             {speaker:'',text:'(노든은 커다란 몸으로 연기와 불을 헤치며 달렸다.\n작은 치쿠는 알을 안고 노든의 그림자 속에서 따라왔다.)'},
+             {speaker:'치쿠',text:'이쪽에 빛이 보여! 출구야!'},
+             {action:()=>{activateCompanion();playSfx('hope');}},
+             {speaker:'',text:'(치쿠가 동반자로 함께하게 되었다.)'}
+           ]},
+           {text:'알을 대신 들어준다',flag:'metChiku',hope:15,next:[
+             {speaker:'노든',text:'내가 알을 들게. 넌 내 뒤에서 따라와.'},
+             {speaker:'치쿠',text:'...정말? 조심해서... 따뜻하게 해줘야 해.'},
+             {speaker:'',text:'(노든은 조심스럽게 알을 뿔 사이에 올려놓았다.)'},
+             {speaker:'치쿠',text:'...커다란 코뿔소가 펭귄 알을 품다니. 이상한 밤이야.'},
+             {speaker:'노든',text:'지금은 이상한 게 당연한 밤이니까.'},
+             {action:()=>{activateCompanion();playSfx('hope');}},
+             {speaker:'',text:'(치쿠가 동반자로 함께하게 되었다.)'}
+           ]}
+         ]}
+       ]
+      }
+    ],
+    exits:[
+      {x:880,type:'chapter',chapter:5,target:'ch5_forest',playerX:80,
+       condition:()=>GS.flags.metChiku}
+    ]
+  },
+
+  // --- CHAPTER 5: Forest - Resting with Chiku ---
+  ch5_forest:{
+    bg:'linear-gradient(180deg,#080810 0%,#101018 40%,#181820 70%,#1a1a22 100%)',
+    ground:{height:'80px',bg:'linear-gradient(180deg,#1a2a18,#142014)'},
+    rain:true,
+    grassCount:25,
+    grassColor:'linear-gradient(to top,#1a2a18,#2a3a22)',
+    music:'forest',
+    bounds:{left:20,right:900},
+    decorations:[
+      // Dark trees
+      ...[0,1,2,3].map(i=>({
+        style:`left:${80+i*220}px;bottom:80px;width:8px;height:140px;background:#1a1a14;`,
+        html:`<div style="position:absolute;top:-30px;left:-30px;width:68px;height:50px;background:radial-gradient(ellipse,#1a2a14,transparent);border-radius:50%;"></div>`
+      }))
+    ],
+    npcs:[
+      {id:'chiku_rest',name:'치쿠',x:450,
+       condition:()=>!GS.flags.forestTalk,
+       sprite:'<div class="chiku-sprite"><div class="chiku-body"></div><div class="chiku-belly"></div><div class="chiku-egg"></div><div class="chiku-beak"></div><div class="chiku-eye l"></div><div class="chiku-eye r"></div><div class="chiku-foot l"></div><div class="chiku-foot r"></div></div>',
+       dialogue:()=>[
+         {speaker:'',text:'(비가 내리는 숲에서 둘은 잠시 쉬기로 했다.)'},
+         {speaker:'치쿠',text:'노든... 아까는 정말 무서웠어. 고마워, 지켜줘서.'},
+         {speaker:'노든',text:'...나도 무서웠어. 하지만 혼자가 아니어서 달릴 수 있었어.'},
+         {speaker:'치쿠',text:'노든은 왜 그곳에 있었어? 동물원에.'},
+         {speaker:'노든',text:'가족을 잃고... 잡혀왔어. 거기서 앙가부라는 친구를 만났는데...'},
+         {speaker:'노든',text:'그 친구도... 나를 지키려다 사냥꾼에게...'},
+         {speaker:'치쿠',text:'...'},
+         {speaker:'노든',text:'자꾸 잃기만 해. 소중한 것들을.'},
+         {speaker:'치쿠',text:'나도 그래. 이 알의 아빠도... 이미 없어.'},
+         {speaker:'치쿠',text:'하지만 이 아이만은 지키고 싶어. 바다에서 키워야 해. 펭귄은 바다에서 살아야 하니까.'},
+         {speaker:'노든',text:'바다... 나도 바다를 보고 싶어. 한 번도 본 적 없거든.'},
+         {speaker:'치쿠',text:'그럼... 같이 가자, 바다까지.'},
+         {speaker:'노든',text:'...그래. 같이 가자, 치쿠.'},
+         {action:()=>{GS.flags.forestTalk=true;changeHope(10);}}
+       ]
+      },
+      {id:'chiku_after2',name:'치쿠',x:450,
+       condition:()=>GS.flags.forestTalk,
+       sprite:'<div class="chiku-sprite"><div class="chiku-body"></div><div class="chiku-belly"></div><div class="chiku-egg"></div><div class="chiku-beak"></div><div class="chiku-eye l"></div><div class="chiku-eye r"></div><div class="chiku-foot l"></div><div class="chiku-foot r"></div></div>',
+       dialogue:()=>[
+         {speaker:'치쿠',text:'비가 좀 약해진 것 같아. 슬슬 갈까?'},
+         {speaker:'노든',text:'응. 동쪽으로 가면 바다가 있을 거야.'},
+         {speaker:'치쿠',text:'알도 따뜻해. 이 아이도 준비된 것 같아.'},
+         {action:()=>changeHope(5)}
+       ]
+      }
+    ],
+    exits:[
+      {x:880,type:'chapter',chapter:6,target:'ch6_journey',playerX:80,
+       condition:()=>GS.flags.forestTalk}
+    ]
+  },
+
+  // --- CHAPTER 6: Journey ---
+  ch6_journey:{
+    bg:'linear-gradient(180deg,#060610 0%,#08081a 50%,#0a0a1e 100%)',
+    ground:{height:'70px',bg:'linear-gradient(180deg,#2a2828,#1a1818)'},
+    stars:80,
+    grassCount:15,
+    music:'journey',
+    bounds:{left:20,right:1200},
+    decorations:[
+      {style:'left:50%;top:20%;width:60px;height:60px;background:radial-gradient(circle,rgba(255,255,200,0.15),transparent);border-radius:50%;'},
+    ],
+    npcs:[
+      {id:'owl',name:'늙은 부엉이',x:450,
+       sprite:'<div style="width:28px;height:32px;position:relative;pointer-events:none;"><div style="position:absolute;width:24px;height:22px;background:linear-gradient(135deg,#5a4a30,#4a3a20);border-radius:12px;bottom:6px;left:2px;"></div><div style="position:absolute;width:16px;height:10px;background:#6a5a38;border-radius:50% 50% 0 0;bottom:22px;left:6px;"></div><div style="position:absolute;width:5px;height:5px;background:#ff0;border-radius:50%;bottom:22px;left:8px;"></div><div style="position:absolute;width:5px;height:5px;background:#ff0;border-radius:50%;bottom:22px;left:16px;"></div><div style="position:absolute;width:4px;height:3px;background:#c08020;border-radius:0 0 2px 2px;bottom:20px;left:12px;"></div></div>',
+       dialogue:()=>[
+         {speaker:'늙은 부엉이',text:'호오... 이 밤에 여행자라니. 어디로 가는 게냐?'},
+         {speaker:'노든',text:'바다를 찾고 있어요.'},
+         {speaker:'늙은 부엉이',text:'바다라... 여기서 꽤 멀지. 두 갈래 길이 있단다.'},
+         {speaker:'늙은 부엉이',text:'산길은 험하지만 가까워. 강변길은 편하지만 돌아가야 하지.'},
+         {choice:[
+           {text:'산길로 간다',flag:'mountainPath',hope:5,next:[
+             {speaker:'늙은 부엉이',text:'용감한 선택이구나. 산에서는 별이 더 가까이 보인단다.'},
+             {action:()=>addItem({id:'star_piece',name:'희망의 별 조각',icon:'⭐',desc:'부엉이가 알려준 산 정상에서 주운 빛나는 돌'})}
+           ]},
+           {text:'강변길로 간다',flag:'riverPath',hope:0,next:[
+             {speaker:'늙은 부엉이',text:'현명한 선택이야. 강물 소리가 좋은 친구가 되어줄 게다.'},
+             {action:()=>addItem({id:'star_piece',name:'희망의 별 조각',icon:'⭐',desc:'강물에 비친 별빛이 굳어진 아름다운 돌'})}
+           ]}
+         ]}
+       ]
+      },
+      {id:'chiku_journey',name:'치쿠',x:200,
+       condition:()=>GS.flags.mountainPath||GS.flags.riverPath,
+       sprite:'<div class="chiku-sprite"><div class="chiku-body"></div><div class="chiku-belly"></div><div class="chiku-egg"></div><div class="chiku-beak"></div><div class="chiku-eye l"></div><div class="chiku-eye r"></div><div class="chiku-foot l"></div><div class="chiku-foot r"></div></div>',
+       dialogue:()=>[
+         {speaker:'치쿠',text:'노든, 별이 정말 많다...'},
+         {speaker:'노든',text:'응. 이렇게 많은 별은 처음 봐.'},
+         {speaker:'치쿠',text:'우리가 걸어온 길만큼 별이 있는 것 같아.'},
+         {speaker:'노든',text:'...치쿠, 알은 괜찮아?'},
+         {speaker:'치쿠',text:'응, 따뜻해. 이 아이도 별을 보고 있을까?'},
+         {speaker:'노든',text:'분명 보고 있을 거야.'},
+         {speaker:'치쿠',text:'노든... 고마워. 혼자였으면 여기까지 못 왔을 거야.'},
+         {speaker:'노든',text:'나도 그래, 치쿠.'},
+         {action:()=>changeHope(10)}
+       ]
+      }
+    ],
+    exits:[
+      {x:1150,type:'chapter',chapter:7,target:'ch7_farewell',playerX:80,
+       condition:()=>GS.flags.mountainPath||GS.flags.riverPath}
+    ]
+  },
+
+  // --- CHAPTER 7: Farewell ---
+  ch7_farewell:{
+    bg:'linear-gradient(180deg,#050508 0%,#080810 40%,#0a0a14 70%,#141420 100%)',
+    ground:{height:'70px',bg:'linear-gradient(180deg,#2a2828,#1a1818)'},
+    stars:50,
+    music:'farewell',
+    bounds:{left:20,right:800},
+    decorations:[
+      // Faint dawn on horizon
+      {style:'left:0;bottom:70px;width:100%;height:40px;background:linear-gradient(180deg,transparent,rgba(60,40,60,0.15));pointer-events:none;'}
+    ],
+    npcs:[
+      {id:'chiku_weak',name:'치쿠',x:400,
+       sprite:'<div class="chiku-sprite" style="opacity:0.85;"><div class="chiku-body"></div><div class="chiku-belly"></div><div class="chiku-egg"></div><div class="chiku-beak"></div><div class="chiku-eye l"></div><div class="chiku-eye r"></div><div class="chiku-foot l"></div><div class="chiku-foot r"></div></div>',
+       dialogue:()=>{
+         if(GS.flags.chikuFarewell) return [
+           {speaker:'',text:'(치쿠는 조용히 잠들어 있다. 알이 조금씩 움직이고 있다.)'}
+         ];
+         GS.flags.chikuFarewell=true;
+         return [
+           {speaker:'치쿠',text:'노든... 잠깐 쉬어도 될까. 좀... 힘들어.'},
+           {speaker:'노든',text:'치쿠? 괜찮아? 어디 아파?'},
+           {speaker:'치쿠',text:'아니야... 그냥 좀 피곤한 것뿐이야.'},
+           {speaker:'',text:'(치쿠의 숨소리가 점점 가늘어졌다.)'},
+           {action:()=>{$('vignette').classList.add('show');playSfx('sad');}},
+           {speaker:'치쿠',text:'노든, 내 부탁 하나만 들어줄래?'},
+           {speaker:'노든',text:'뭐든지. 뭐든지 들어줄게.'},
+           {speaker:'치쿠',text:'이 아이를... 바다에 데려다줘. 펭귄은 바다에서 살아야 하니까.'},
+           {speaker:'노든',text:'무슨 소리야! 같이 가자고 했잖아! 같이!'},
+           {speaker:'치쿠',text:'...나는 충분히 행복했어, 노든. 정말이야.'},
+           {speaker:'치쿠',text:'혼자였던 밤들이 너를 만나고 나서... 따뜻했어.'},
+           {speaker:'치쿠',text:'이 아이에게... 바다를 보여줘.'},
+           {speaker:'노든',text:'치쿠... 치쿠...!'},
+           {speaker:'',text:'(치쿠는 미소를 지으며 조용히 눈을 감았다.)'},
+           {action:()=>{changeHope(-15);}},
+           {speaker:'',text:'...'},
+           {speaker:'',text:'그리고, 알이 움직이기 시작했다.'},
+           {speaker:'',text:'톡. 톡톡.'},
+           {speaker:'',text:'작고 보송보송한 새끼 펭귄이 세상에 나왔다.'},
+           {action:()=>{
+             GS.companion=null;
+             GS.babyPenguin=true;
+             GS.flags.chikuNoEgg=true;
+             changeHope(20);
+             playSfx('hope');
+             $('vignette').classList.remove('show');
+             buildScene('ch7_farewell');
+           }},
+           {speaker:'',text:'(새끼 펭귄이 노든을 올려다보며 소리를 냈다.)'},
+           {speaker:'새끼 펭귄',text:'삐약...'},
+           {speaker:'노든',text:'...안녕. 안녕, 작은 아이. 내가 널 바다로 데려갈게. 약속할게.'}
+         ];
+       }
+      }
+    ],
+    exits:[
+      {x:780,type:'chapter',chapter:8,target:'ch8_sea',playerX:80,
+       condition:()=>GS.flags.chikuFarewell}
+    ]
+  },
+
+  // --- CHAPTER 8: To the Sea ---
+  ch8_sea:{
+    bg:'linear-gradient(180deg,#1a2040 0%,#2a3060 20%,#4a5080 40%,#8090b0 60%,#c0b0a0 80%,#e0c890 100%)',
+    ground:{height:'60px',bg:'linear-gradient(180deg,#c0b090,#a09070)'},
+    music:'sea',
+    bounds:{left:20,right:900},
+    decorations:[
+      // Sun
+      {style:'right:100px;top:60px;width:80px;height:80px;background:radial-gradient(circle,rgba(255,220,150,0.8),rgba(255,180,100,0.3),transparent);border-radius:50%;'},
+      // Waves
+      ...[0,1,2,3,4,5].map(i=>({
+        style:`left:${i*180}px;bottom:55px;width:160px;height:12px;background:rgba(80,120,180,0.3);border-radius:50%;animation:sway ${2+i*0.3}s infinite alternate;`
+      })),
+      // Sea
+      {style:'left:0;bottom:0;width:100%;height:58px;background:linear-gradient(180deg,rgba(60,100,160,0.5),rgba(40,80,140,0.6));'}
+    ],
+    npcs:[
+      {id:'baby_sea',name:'새끼 펭귄',x:500,
+       condition:()=>!GS.flags.finalChoice,
+       sprite:'<div class="baby-sprite"><div class="baby-body"></div><div class="baby-belly"></div><div class="baby-fluff"></div><div class="baby-beak"></div><div class="baby-eye l"></div><div class="baby-eye r"></div><div class="baby-foot l"></div><div class="baby-foot r"></div></div>',
+       dialogue:()=>[
+         {speaker:'새끼 펭귄',text:'삐약삐약!'},
+         {speaker:'',text:'(새끼 펭귄이 처음으로 바다를 보았다. 작은 날개를 파닥거렸다.)'},
+         {speaker:'노든',text:'봐... 이게 바다야. 치쿠가 너에게 보여주고 싶었던 것.'},
+         {speaker:'새끼 펭귄',text:'삐약...?'},
+         {speaker:'노든',text:'너의 엄마는 아주 용감한 펭귄이었어. 너를 정말 사랑했어.'},
+         {speaker:'',text:'(바다 위로 아침 해가 떠오르고 있었다.)'},
+         {speaker:'노든',text: ()=>{
+           const itemCount=GS.items.length;
+           if(itemCount>=4) return '(품 안의 조약돌을 만져본다. 모든 만남이 떠오른다...)';
+           return '(긴긴밤이 끝나고 있다. 이제 어떻게 해야 할까.)';
+         }},
+         {choice:[
+           {text:'작은 펭귄을 바다로 보내준다',flag:'finalChoice',flagValue:'release',action:()=>{
+             GS.flags.finalChoice='release';
+             const endType=GS.items.length>=4?'memory':'hope';
+             showCutscene([
+               '작은 펭귄이 조심스럽게 파도에 발을 담갔다.',
+               '처음에는 무서웠지만, 곧 물살을 타기 시작했다.',
+               '돌아보는 작은 눈동자에 바다가 가득 담겨 있었다.',
+               '노든은 웃었다. 오랜만에, 진심으로.',
+               '긴긴밤이 끝나고 아침이 왔다.'
+             ],()=>showEnding(endType));
+           }},
+           {text:'함께 바닷가에 남는다',flag:'finalChoice',flagValue:'stay',action:()=>{
+             GS.flags.finalChoice='stay';
+             showCutscene([
+               '노든은 바닷가에 자리를 잡았다.',
+               '작은 펭귄은 매일 바다에서 놀다가 노든에게 돌아왔다.',
+               '혼자가 아닌 아침은 이렇게나 따뜻했다.',
+               '파도 소리가 두 친구의 노래가 되었다.',
+               '긴긴밤이 끝나고, 따뜻한 아침이 시작되었다.'
+             ],()=>showEnding('together'));
+           }}
+         ]}
+       ]
+      }
+    ],
+    exits:[]
+  }
+};
+
+// ===== INPUT =====
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') GS.moving.left=true;
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') GS.moving.right=true;
+  if(e.key===' '||e.key==='Enter'){
+    e.preventDefault();
+    if(GS.dialogueActive) advanceDialogue();
+    else {
+      // Try interact with nearest NPC
+      const npcs=document.querySelectorAll('.npc');
+      let closest=null, minDist=80;
+      npcs.forEach(n=>{
+        const d=Math.abs(GS.px-parseFloat(n.style.left));
+        if(d<minDist){minDist=d;closest=n;}
+      });
+      if(closest) closest.click();
+    }
+  }
+  if(e.key==='i'||e.key==='I') toggleInventory();
+});
+document.addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') GS.moving.left=false;
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') GS.moving.right=false;
+});
+
+// Dialogue box click
+$('dialogue-box').addEventListener('click',e=>{
+  e.stopPropagation();
+  if(GS.dialogueActive) advanceDialogue();
+});
+
+// Mobile controls
+document.querySelectorAll('.dpad-btn').forEach(btn=>{
+  const dir=btn.dataset.dir;
+  btn.addEventListener('touchstart',e=>{e.preventDefault();GS.moving[dir]=true;});
+  btn.addEventListener('touchend',e=>{e.preventDefault();GS.moving[dir]=false;});
+  btn.addEventListener('mousedown',()=>GS.moving[dir]=true);
+  btn.addEventListener('mouseup',()=>GS.moving[dir]=false);
+});
+$('m-interact').addEventListener('click',()=>{
+  if(GS.dialogueActive){ advanceDialogue(); return; }
+  const npcs=document.querySelectorAll('.npc');
+  let closest=null, minDist=80;
+  npcs.forEach(n=>{
+    const d=Math.abs(GS.px-parseFloat(n.style.left));
+    if(d<minDist){minDist=d;closest=n;}
+  });
+  if(closest) closest.click();
+});
+$('m-inv').addEventListener('click',toggleInventory);
+
+// HUD buttons
+$('music-btn').addEventListener('click',()=>{initAudio();toggleMusic();});
+$('inv-btn').addEventListener('click',toggleInventory);
+$('skin-btn').addEventListener('click',()=>{
+  const p=$('skin-panel');
+  p.style.display=p.style.display==='block'?'none':'block';
+});
+document.querySelectorAll('.skin-option').forEach(b=>{
+  b.addEventListener('click',()=>applySkin(b.dataset.skin));
+});
+$('restart-btn').addEventListener('click',restartGame);
+
+// Start
+$('start-btn').addEventListener('click',()=>{
+  initAudio();
+  $('title-screen').style.display='none';
+  $('hud').style.display='flex';
+  showChapter(1,'ch1_orphanage',200);
+  gameLoop();
+});
+
+// Load saved skin
+const savedSkin=localStorage.getItem('ggg-skin');
+if(savedSkin) applySkin(savedSkin);
+
+// Fade in/out animation for notifications
+const style=document.createElement('style');
+style.textContent='@keyframes fadeInOut{0%{opacity:0;transform:translateX(-50%) translateY(-10px);}15%{opacity:1;transform:translateX(-50%) translateY(0);}85%{opacity:1;}100%{opacity:0;}}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
