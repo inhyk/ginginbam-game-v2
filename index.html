@@ -39,8 +39,8 @@
 --hope-color:#d0b060;--skin-name:"오래된 책";
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sans KR',sans-serif;overflow:hidden;width:100vw;height:100vh;height:100dvh;touch-action:none;user-select:none;-webkit-user-select:none;}
-#game{position:relative;width:100vw;height:100vh;height:100dvh;overflow:hidden;}
+body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sans KR',sans-serif;overflow:hidden;width:100vw;height:calc(var(--vh,1vh) * 100);touch-action:none;user-select:none;-webkit-user-select:none;}
+#game{position:relative;width:100vw;height:calc(var(--vh,1vh) * 100);overflow:hidden;}
 #scene{position:absolute;top:0;left:0;width:100%;height:100%;transition:opacity 0.5s;}
 .scene-bg{position:absolute;top:0;left:0;width:100%;height:100%;}
 /* HUD */
@@ -446,6 +446,12 @@ body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sa
   </div>
 </div>
 <script>
+// ===== MOBILE VIEWPORT FIX =====
+function setVH(){document.documentElement.style.setProperty('--vh',window.innerHeight*0.01+'px');}
+setVH();
+window.addEventListener('resize',setVH);
+window.addEventListener('orientationchange',()=>setTimeout(setVH,100));
+
 // ===== GAME ENGINE =====
 const $ = id => document.getElementById(id);
 const GS = {
