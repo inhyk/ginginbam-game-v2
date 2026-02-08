@@ -2453,9 +2453,9 @@ $('chat-input').addEventListener('keydown',e=>{
 });
 $('chat-input').addEventListener('keyup',e=>e.stopPropagation());
 
-// T key opens chat (override in main keydown)
+// T/ㅅ/Enter key opens chat (override in main keydown)
 document.addEventListener('keydown',e=>{
-  if(e.key==='t'||e.key==='T'){
+  if(e.key==='t'||e.key==='T'||e.key==='ㅅ'||(!chatTyping&&e.key==='Enter')){
     if(!chatTyping&&MP.isMP&&!GS.dialogueActive&&!GS.choiceActive&&!GS.minigameActive){
       e.preventDefault();
       chatToggle();
