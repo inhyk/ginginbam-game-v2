@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>긴긴밤 - The Long, Long Night</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -39,8 +39,8 @@
 --hope-color:#d0b060;--skin-name:"오래된 책";
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sans KR',sans-serif;overflow:hidden;width:100vw;height:100vh;touch-action:none;user-select:none;-webkit-user-select:none;}
-#game{position:relative;width:100vw;height:100vh;overflow:hidden;}
+body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sans KR',sans-serif;overflow:hidden;width:100vw;height:100vh;height:100dvh;touch-action:none;user-select:none;-webkit-user-select:none;}
+#game{position:relative;width:100vw;height:100vh;height:100dvh;overflow:hidden;}
 #scene{position:absolute;top:0;left:0;width:100%;height:100%;transition:opacity 0.5s;}
 .scene-bg{position:absolute;top:0;left:0;width:100%;height:100%;}
 /* HUD */
@@ -261,11 +261,11 @@ body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sa
 /* Ground */
 .ground{position:absolute;bottom:0;left:0;width:100%;pointer-events:none;}
 /* D-pad mobile */
-#dpad{position:absolute;bottom:20px;left:20px;z-index:70;display:none;}
+#dpad{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:20px;z-index:70;display:none;}
 .dpad-btn{position:absolute;width:44px;height:44px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,255,255,0.6);-webkit-tap-highlight-color:transparent;}
 .dpad-btn:active{background:rgba(255,255,255,0.25);}
 .dpad-up{left:48px;top:0;}.dpad-down{left:48px;top:96px;}.dpad-left{left:0;top:48px;}.dpad-right{left:96px;top:48px;}
-#mobile-actions{position:absolute;bottom:20px;right:20px;z-index:70;display:none;gap:10px;}
+#mobile-actions{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom,0px));right:20px;z-index:70;display:none;gap:10px;}
 .mobile-btn{width:50px;height:50px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(255,255,255,0.7);-webkit-tap-highlight-color:transparent;}
 .mobile-btn:active{background:rgba(255,255,255,0.25);}
 /* Responsive */
