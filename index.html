@@ -758,30 +758,35 @@ function gameLoop(){
     if(GS.moving.right) dx=SPEED;
     // Jump physics
     if(GS.isJumping){
+      const prevY=GS.jumpY;
       GS.jumpY+=GS.jumpVel;
       GS.jumpVel-=GRAVITY;
-      if(GS.jumpY<=0){
-        GS.jumpY=0;
-        GS.jumpVel=0;
-        GS.isJumping=false;
+      // Platform landing
+      const def0=SCENES[GS.sceneKey];
+      if(def0?.walls&&GS.jumpVel<=0){
+        const pw=40;
+        for(const w of def0.walls){
+          if(GS.px+pw>w.x&&GS.px<w.x+w.w&&prevY>=w.h&&GS.jumpY<=w.h){
+            GS.jumpY=w.h;GS.jumpVel=0;GS.isJumping=false;break;
+          }
+        }
       }
+      if(GS.jumpY<=0){
+        GS.jumpY=0;GS.jumpVel=0;GS.isJumping=false;
+      }
+    }
+    // Walk off platform edge
+    if(!GS.isJumping&&GS.jumpY>0){
+      const def0=SCENES[GS.sceneKey];
+      let onPlat=false;
+      if(def0?.walls){const pw=40;for(const w of def0.walls){if(GS.px+pw>w.x&&GS.px<w.x+w.w&&Math.abs(GS.jumpY-w.h)<1){onPlat=true;break;}}}
+      if(!onPlat){GS.isJumping=true;GS.jumpVel=0;}
     }
     if(dx!==0){
       const def=SCENES[GS.sceneKey];
       const minX=def?.bounds?.left??20;
       const maxX=def?.bounds?.right??(window.innerWidth-60);
-      let newX=Math.max(minX, Math.min(maxX, GS.px+dx));
-      // Wall collision
-      if(def?.walls){
-        const pw=40;
-        for(const w of def.walls){
-          if(GS.jumpY<w.h&&newX+pw>w.x&&newX<w.x+w.w){
-            if(dx>0) newX=w.x-pw;
-            else newX=w.x+w.w;
-          }
-        }
-      }
-      GS.px=newX;
+      GS.px=Math.max(minX, Math.min(maxX, GS.px+dx));
       GS.facing=dx>0?'right':'left';
       const p=$('player');
       if(p){
