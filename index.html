@@ -709,11 +709,30 @@ function createCompanion(sc, def, type){
 const SPEED=3;
 const JUMP_FORCE=10;
 const GRAVITY=0.5;
+let airJumps=0;
 function jump(){
-  if(GS.isJumping||GS.transitioning||GS.dialogueActive||GS.choiceActive||GS.minigameActive)return;
-  GS.isJumping=true;
-  GS.jumpVel=JUMP_FORCE;
-  if(audioCtx) playNote(392,0.08,'triangle',0.06,sfxGain);
+  if(GS.transitioning||GS.dialogueActive||GS.choiceActive||GS.minigameActive)return;
+  const maxAirJumps=eggsFound.includes('jumpburst')?4:0;
+  if(GS.isJumping&&airJumps>=maxAirJumps)return;
+  if(GS.isJumping){
+    airJumps++;
+    GS.jumpVel=JUMP_FORCE*(1-airJumps*0.1);
+    if(audioCtx) playNote(392+airJumps*80,0.08,'triangle',0.06,sfxGain);
+    const s=document.createElement('div');
+    s.className='sparkle';s.textContent='✨';
+    s.style.left=GS.px+'px';
+    const def=SCENES[GS.sceneKey];
+    const groundH=def?.ground?parseInt(def.ground.height)||80:80;
+    s.style.bottom=(groundH+GS.jumpY)+'px';
+    s.style.position='absolute';
+    $('scene').appendChild(s);
+    setTimeout(()=>s.remove(),800);
+  } else {
+    GS.isJumping=true;
+    airJumps=0;
+    GS.jumpVel=JUMP_FORCE;
+    if(audioCtx) playNote(392,0.08,'triangle',0.06,sfxGain);
+  }
 }
 function gameLoop(){
   if(!GS.transitioning && !GS.dialogueActive && !GS.choiceActive && !GS.minigameActive){
