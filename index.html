@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>긴긴밤 - The Long, Long Night</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 :root{
 --bg-primary:#0a0a12;--bg-secondary:#12121f;--bg-tertiary:#1a1a2e;
@@ -71,10 +72,61 @@ body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sa
 .inv-name{font-size:13px;color:var(--text-primary);font-weight:700;}
 .inv-desc{font-size:11px;color:var(--text-secondary);margin-top:2px;}
 #inv-empty{color:var(--text-secondary);font-size:13px;font-style:italic;}
+/* Easter egg panel */
+#egg-panel{position:absolute;top:0;left:-320px;width:300px;height:100%;background:var(--ui-panel);border-right:1px solid var(--ui-border);z-index:80;transition:left 0.3s;padding:20px;overflow-y:auto;backdrop-filter:blur(8px);}
+#egg-panel.open{left:0;}
+#egg-panel h3{font-family:'Noto Serif KR',serif;color:var(--text-accent);margin-bottom:16px;font-size:18px;}
+.egg-item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--ui-border);border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);}
+.egg-item.found{border-color:var(--text-accent);background:rgba(240,208,128,0.05);}
+.egg-icon{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.egg-info{flex:1;}
+.egg-name{font-size:13px;color:var(--text-primary);font-weight:700;}
+.egg-hint{font-size:11px;color:var(--text-secondary);margin-top:2px;}
+.egg-item:not(.found) .egg-icon{filter:grayscale(1) opacity(0.3);}
+.egg-item:not(.found) .egg-name{color:var(--text-secondary);}
+.egg-count{font-size:12px;color:var(--text-secondary);margin-bottom:12px;}
 /* Skin panel */
 #skin-panel{position:absolute;top:50px;right:10px;background:var(--ui-panel);border:1px solid var(--ui-border);border-radius:10px;padding:12px;z-index:90;display:none;backdrop-filter:blur(8px);}
 .skin-option{display:block;width:100%;background:none;border:1px solid var(--ui-border);color:var(--text-primary);font-size:13px;padding:8px 14px;border-radius:6px;cursor:pointer;margin-bottom:4px;font-family:inherit;text-align:left;}
 .skin-option:hover,.skin-option.active{background:var(--bg-tertiary);border-color:var(--text-accent);}
+/* Multiplayer lobby */
+#mp-lobby{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:210;display:none;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+#mp-lobby h3{font-family:'Noto Serif KR',serif;font-size:22px;color:var(--text-accent);margin-bottom:20px;}
+.mp-btn{background:none;border:1px solid var(--ui-border);color:var(--text-primary);font-size:15px;padding:12px 32px;border-radius:10px;cursor:pointer;font-family:inherit;margin:6px;transition:all 0.2s;min-width:200px;}
+.mp-btn:hover{border-color:var(--text-accent);background:rgba(240,208,128,0.08);}
+#mp-room-code{font-family:'Noto Serif KR',serif;font-size:36px;color:var(--text-accent);letter-spacing:8px;margin:16px 0;}
+#mp-input{background:var(--bg-tertiary);border:1px solid var(--ui-border);color:var(--text-primary);font-size:20px;padding:10px 16px;border-radius:8px;text-align:center;letter-spacing:6px;width:160px;font-family:inherit;outline:none;}
+#mp-input:focus{border-color:var(--text-accent);}
+#mp-status{font-size:13px;color:var(--text-secondary);margin-top:12px;}
+#mp-back{font-size:12px;color:var(--text-secondary);cursor:pointer;margin-top:20px;border:none;background:none;font-family:inherit;}
+#mp-back:hover{color:var(--text-primary);}
+/* Multiplayer indicator */
+#mp-indicator{position:absolute;top:52px;left:16px;font-size:11px;color:var(--text-secondary);z-index:55;display:none;}
+/* Guest player */
+.guest-sprite{width:56px;height:44px;position:relative;}
+.guest-body{position:absolute;width:48px;height:30px;background:linear-gradient(135deg,#8a7a6a,#6a5a4a);border-radius:24px 20px 8px 8px;bottom:10px;left:4px;}
+.guest-head{position:absolute;width:24px;height:20px;background:linear-gradient(135deg,#907a6a,#706050);border-radius:12px 14px 6px 10px;bottom:22px;left:38px;}
+.guest-horn{position:absolute;width:6px;height:14px;background:linear-gradient(to top,#c0a060,#e0c880);border-radius:3px 3px 1px 1px;bottom:36px;left:48px;transform:rotate(-10deg);}
+.guest-eye{position:absolute;width:4px;height:4px;background:#222;border-radius:50%;bottom:30px;left:50px;}
+.guest-ear{position:absolute;width:8px;height:6px;background:#806a5a;border-radius:50% 50% 0 0;bottom:38px;left:40px;}
+.guest-leg{position:absolute;width:8px;height:12px;background:#6a5a4a;border-radius:0 0 3px 3px;bottom:0;}
+.guest-leg.fl{left:12px;}.guest-leg.fr{left:22px;}.guest-leg.bl{left:32px;}.guest-leg.br{left:40px;}
+.guest-label{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--hope-color);white-space:nowrap;}
+.character.walking .guest-leg.fl,.character.walking .guest-leg.br{animation:legWalkA 0.35s infinite alternate;}
+.character.walking .guest-leg.fr,.character.walking .guest-leg.bl{animation:legWalkB 0.35s infinite alternate;}
+.character.face-left .guest-sprite{transform:scaleX(-1);}
+/* Chat */
+#chat-box{position:absolute;bottom:60px;left:10px;width:280px;z-index:75;display:none;pointer-events:none;}
+#chat-box.open{pointer-events:auto;}
+#chat-msgs{max-height:150px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:3px;}
+.chat-msg{font-size:12px;color:var(--text-primary);background:rgba(0,0,0,0.6);padding:4px 8px;border-radius:6px;backdrop-filter:blur(4px);animation:chatFadeIn 0.2s;word-break:break-word;pointer-events:none;}
+.chat-msg .chat-name{color:var(--text-accent);font-weight:700;margin-right:4px;}
+.chat-msg.system{color:var(--text-secondary);font-style:italic;}
+@keyframes chatFadeIn{0%{opacity:0;transform:translateY(4px);}100%{opacity:1;transform:translateY(0);}}
+#chat-input-wrap{display:none;margin-top:4px;}
+#chat-input{width:100%;background:rgba(0,0,0,0.7);border:1px solid var(--ui-border);color:var(--text-primary);font-size:13px;padding:6px 10px;border-radius:6px;font-family:inherit;outline:none;backdrop-filter:blur(4px);}
+#chat-input:focus{border-color:var(--text-accent);}
+#chat-hint{font-size:10px;color:var(--text-secondary);opacity:0.6;margin-top:2px;text-align:right;pointer-events:none;}
 /* Chapter overlay */
 #chapter-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity 0.6s;}
 #chapter-overlay.show{opacity:1;pointer-events:auto;}
@@ -89,11 +141,39 @@ body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sa
 #vignette{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:40;opacity:0;transition:opacity 1s;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.8) 100%);}
 #vignette.show{opacity:1;}
 /* Title screen */
-#title-screen{position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0a12;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-#title-screen h1{font-family:'Noto Serif KR',serif;font-size:48px;color:var(--text-primary);margin-bottom:8px;}
-#title-screen .subtitle{font-size:16px;color:var(--text-secondary);margin-bottom:40px;}
-#start-btn{background:none;border:1px solid var(--text-accent);color:var(--text-accent);font-size:18px;padding:12px 40px;border-radius:8px;cursor:pointer;font-family:'Noto Serif KR',serif;transition:all 0.3s;}
-#start-btn:hover{background:rgba(240,208,128,0.1);}
+#title-screen{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,#050510 0%,#0a0a1a 30%,#101028 55%,#1a1430 75%,#2a1828 90%,#1a1020 100%);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;}
+#title-stars{position:absolute;top:0;left:0;width:100%;height:70%;pointer-events:none;}
+#title-moon{position:absolute;top:12%;right:15%;width:60px;height:60px;background:radial-gradient(circle at 35% 35%,#f8f0d0,#e0d0a0,rgba(200,180,120,0.3));border-radius:50%;box-shadow:0 0 40px rgba(240,220,160,0.3),0 0 80px rgba(240,220,160,0.1);animation:moonGlow 4s ease-in-out infinite alternate;}
+@keyframes moonGlow{0%{box-shadow:0 0 40px rgba(240,220,160,0.3),0 0 80px rgba(240,220,160,0.1);}100%{box-shadow:0 0 50px rgba(240,220,160,0.4),0 0 100px rgba(240,220,160,0.15);}}
+#title-ground{position:absolute;bottom:0;left:0;width:100%;height:25%;background:linear-gradient(180deg,transparent 0%,rgba(20,16,12,0.6) 30%,#1a1410 60%,#141010 100%);pointer-events:none;}
+#title-hills{position:absolute;bottom:8%;left:0;width:200%;height:120px;pointer-events:none;}
+.title-hill{position:absolute;bottom:0;border-radius:50%;opacity:0.3;}
+.title-hill:nth-child(1){left:-5%;width:40%;height:100px;background:#1a1820;}
+.title-hill:nth-child(2){left:25%;width:50%;height:80px;background:#161520;}
+.title-hill:nth-child(3){left:60%;width:45%;height:90px;background:#181622;}
+#title-silhouettes{position:absolute;bottom:12%;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:8px;pointer-events:none;opacity:0.7;animation:silFloat 3s ease-in-out infinite alternate;}
+@keyframes silFloat{0%{transform:translateX(-50%) translateY(0);}100%{transform:translateX(-50%) translateY(-4px);}}
+.sil-rhino{width:56px;height:44px;position:relative;}
+.sil-rhino-body{position:absolute;width:48px;height:30px;background:#0a0a14;border-radius:24px 20px 8px 8px;bottom:10px;left:4px;}
+.sil-rhino-head{position:absolute;width:24px;height:20px;background:#0a0a14;border-radius:12px 14px 6px 10px;bottom:22px;left:38px;}
+.sil-rhino-horn{position:absolute;width:6px;height:14px;background:#0a0a14;border-radius:3px 3px 1px 1px;bottom:36px;left:48px;transform:rotate(-10deg);}
+.sil-rhino-leg{position:absolute;width:8px;height:12px;background:#0a0a14;border-radius:0 0 3px 3px;bottom:0;}
+.sil-rhino-leg:nth-child(4){left:12px;}.sil-rhino-leg:nth-child(5){left:22px;}.sil-rhino-leg:nth-child(6){left:32px;}.sil-rhino-leg:nth-child(7){left:40px;}
+.sil-penguin{width:20px;height:26px;position:relative;}
+.sil-penguin-body{position:absolute;width:16px;height:20px;background:#0a0a14;border-radius:8px 8px 5px 5px;bottom:4px;left:2px;}
+.sil-penguin-head{position:absolute;width:12px;height:10px;background:#0a0a14;border-radius:50%;bottom:20px;left:4px;}
+.sil-penguin-foot{position:absolute;width:7px;height:3px;background:#0a0a14;border-radius:0 0 4px 4px;bottom:0;}
+.sil-penguin-foot:nth-child(3){left:1px;}.sil-penguin-foot:nth-child(4){left:10px;}
+#title-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;margin-top:-60px;}
+#title-content h1{font-family:'Noto Serif KR',serif;font-size:56px;color:#f0e8d8;margin-bottom:6px;letter-spacing:8px;text-shadow:0 0 30px rgba(240,220,160,0.3);animation:titleFade 2s ease-out forwards;}
+#title-content .subtitle{font-size:15px;color:rgba(160,160,180,0.8);margin-bottom:10px;letter-spacing:3px;animation:titleFade 2s 0.3s ease-out both;}
+#title-content .tagline{font-family:'Noto Serif KR',serif;font-size:13px;color:rgba(200,180,140,0.6);margin-bottom:50px;letter-spacing:1px;animation:titleFade 2s 0.6s ease-out both;}
+@keyframes titleFade{0%{opacity:0;transform:translateY(10px);}100%{opacity:1;transform:translateY(0);}}
+#start-btn{background:none;border:1px solid rgba(240,208,128,0.4);color:var(--text-accent);font-size:16px;padding:14px 48px;border-radius:30px;cursor:pointer;font-family:'Noto Serif KR',serif;transition:all 0.4s;letter-spacing:2px;animation:titleFade 2s 1s ease-out both;position:relative;overflow:hidden;}
+#start-btn:hover{background:rgba(240,208,128,0.08);border-color:rgba(240,208,128,0.7);box-shadow:0 0 20px rgba(240,208,128,0.15);transform:translateY(-1px);}
+#title-particles{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;}
+.title-particle{position:absolute;width:2px;height:2px;background:rgba(240,220,160,0.4);border-radius:50%;animation:particleFloat var(--dur,8s) linear infinite;}
+@keyframes particleFloat{0%{transform:translateY(100vh) translateX(0);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateY(-20px) translateX(var(--dx,20px));opacity:0;}}
 /* Ending */
 #ending-screen{position:absolute;top:0;left:0;width:100%;height:100%;background:#000;z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;}
 #ending-screen h2{font-family:'Noto Serif KR',serif;font-size:32px;color:var(--text-accent);margin-bottom:16px;}
@@ -121,6 +201,23 @@ body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sa
 @keyframes legWalkB{0%{transform:rotate(12deg);}100%{transform:rotate(-12deg);}}
 @keyframes tailWag{0%{transform:rotate(-15deg);}100%{transform:rotate(15deg);}}
 .character.face-left .noden-sprite{transform:scaleX(-1);}
+.character.jumping .noden-sprite{transform:scaleY(0.9) scaleX(1.05);}
+.character.jumping.face-left .noden-sprite{transform:scaleY(0.9) scaleX(-1.05);}
+/* Easter egg: Rainbow mode */
+.rainbow-mode .noden-body{animation:rainbowShift 1s infinite!important;}
+.rainbow-mode .noden-head{animation:rainbowShift 1s 0.1s infinite!important;}
+@keyframes rainbowShift{0%{filter:hue-rotate(0deg);}100%{filter:hue-rotate(360deg);}}
+.rainbow-mode .chiku-body,.rainbow-mode .baby-body{animation:rainbowShift 1.2s infinite!important;}
+/* Easter egg: Shooting star */
+.shooting-star{position:absolute;width:3px;height:3px;background:#fff;border-radius:50%;z-index:199;pointer-events:none;}
+.shooting-star::after{content:'';position:absolute;top:0;right:0;width:40px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,200,0.8));transform-origin:right center;transform:rotate(0deg);}
+@keyframes shootingStar{0%{transform:translate(0,0);opacity:1;}100%{transform:translate(-300px,200px);opacity:0;}}
+/* Easter egg: Sparkle burst */
+.sparkle{position:absolute;pointer-events:none;font-size:14px;z-index:99;animation:sparklePop 0.8s forwards;}
+@keyframes sparklePop{0%{opacity:1;transform:translate(0,0) scale(1);}100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(0.3);}}
+/* Easter egg: Angabu memorial */
+.memorial-star{position:fixed;pointer-events:none;z-index:300;animation:memorialFloat 3s forwards;}
+@keyframes memorialFloat{0%{opacity:0;transform:translateY(0);}20%{opacity:1;}80%{opacity:1;}100%{opacity:0;transform:translateY(-100px);}}
 /* Chiku - penguin */
 .chiku-sprite{width:32px;height:38px;position:relative;}
 .chiku-body{position:absolute;width:26px;height:28px;background:linear-gradient(135deg,#1a1a2a,#0a0a1a);border-radius:13px 13px 8px 8px;bottom:6px;left:3px;}
@@ -182,16 +279,104 @@ body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sa
 }
 /* Music toggle */
 #music-btn{position:absolute;top:10px;left:10px;z-index:55;}
+/* Minigame */
+#mg-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);z-index:150;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.mg-title{font-family:'Noto Serif KR',serif;font-size:18px;color:var(--text-accent);margin-bottom:4px;}
+.mg-desc{font-size:12px;color:var(--text-secondary);margin-bottom:12px;}
+.mg-area{position:relative;width:min(90%,480px);height:280px;border:1px solid var(--ui-border);border-radius:12px;overflow:hidden;background:rgba(8,8,16,0.9);cursor:pointer;}
+.mg-hud{display:flex;justify-content:space-between;width:min(90%,480px);margin-top:8px;font-size:13px;}
+.mg-hud>*:first-child{color:var(--text-secondary);}.mg-hud>*:last-child{color:var(--text-accent);}
+.mg-result{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:155;opacity:0;transition:opacity 0.4s;}
+.mg-result.show{opacity:1;}
+.mg-result-text{font-family:'Noto Serif KR',serif;font-size:24px;color:var(--text-accent);}
+.mg-item{position:absolute;font-size:22px;cursor:pointer;transition:transform 0.2s,opacity 0.3s;animation:twinkle 0.8s infinite alternate;z-index:2;}
+.mg-item:hover{transform:scale(1.3);}
+.mg-pop{transform:scale(1.8)!important;opacity:0!important;}
+.mg-fade{opacity:0!important;}
+.mg-ring{position:absolute;left:50%;top:50%;width:50px;height:50px;border:2px solid var(--text-accent);border-radius:50%;transform:translate(-50%,-50%);opacity:0.5;}
+.mg-heart{position:absolute;font-size:24px;cursor:pointer;z-index:2;transition:opacity 0.2s;}
+.mg-player{position:absolute;font-size:28px;transform:translateX(-50%);z-index:3;transition:left 0.15s;}
+.mg-danger{position:absolute;font-size:22px;z-index:1;}
+.mg-light{position:absolute;width:18px;height:18px;background:radial-gradient(circle,rgba(255,255,200,0.9),rgba(255,200,100,0.3),transparent);border-radius:50%;cursor:pointer;animation:twinkle 0.5s infinite alternate;z-index:2;}
+.mg-bar-bg{position:absolute;bottom:40%;left:10%;width:80%;height:20px;background:rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;}
+.mg-bar-fill{height:100%;width:0%;background:var(--hope-color);border-radius:10px;transition:width 0.1s;}
+.mg-mash-label{position:absolute;top:20%;width:100%;text-align:center;font-size:16px;color:var(--text-secondary);}
+.mg-mash-icon{position:absolute;top:32%;left:50%;transform:translateX(-50%);font-size:48px;}
+.mg-bounce{animation:mgBounce 0.15s;}
+@keyframes mgBounce{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+.mg-mash-icon.mg-bounce{animation:mgBounceMash 0.15s;}
+@keyframes mgBounceMash{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.2);}}
+.mg-catcher{position:absolute;bottom:15px;font-size:28px;transform:translateX(-50%);z-index:3;transition:left 0.12s;}
+.mg-drop{position:absolute;font-size:18px;z-index:1;}
+.mg-star-num{position:absolute;width:32px;height:32px;border:1px solid var(--text-accent);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-accent);font-size:14px;cursor:pointer;transform:translate(-50%,-50%);z-index:2;transition:all 0.3s;}
+.mg-star-num:hover{background:rgba(240,208,128,0.2);}
+.mg-star-num.mg-done{background:var(--text-accent);color:#000;}
+.mg-egg{position:absolute;top:25%;left:50%;transform:translateX(-50%);font-size:56px;}
+.mg-egg.mg-bounce{animation:mgBounceMash 0.15s;}
+.mg-temp-bg{position:absolute;bottom:15%;left:15%;width:70%;height:16px;background:rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;}
+.mg-temp-fill{height:100%;width:50%;border-radius:8px;transition:width 0.1s,background 0.3s;}
+.mg-penguin{position:absolute;font-size:28px;z-index:3;transition:bottom 0.15s;}
+.mg-wave-el{position:absolute;font-size:30px;z-index:1;}
 </style>
 </head>
 <body>
 <div id="game">
   <!-- Title -->
   <div id="title-screen">
-    <h1>긴긴밤</h1>
-    <div class="subtitle">The Long, Long Night</div>
-    <button id="start-btn">여정을 시작하다</button>
+    <div id="title-stars"></div>
+    <div id="title-moon"></div>
+    <div id="title-particles"></div>
+    <div id="title-ground"></div>
+    <div id="title-hills"><div class="title-hill"></div><div class="title-hill"></div><div class="title-hill"></div></div>
+    <div id="title-silhouettes">
+      <div class="sil-rhino">
+        <div class="sil-rhino-body"></div>
+        <div class="sil-rhino-head"></div>
+        <div class="sil-rhino-horn"></div>
+        <div class="sil-rhino-leg"></div><div class="sil-rhino-leg"></div><div class="sil-rhino-leg"></div><div class="sil-rhino-leg"></div>
+      </div>
+      <div class="sil-penguin">
+        <div class="sil-penguin-body"></div>
+        <div class="sil-penguin-head"></div>
+        <div class="sil-penguin-foot"></div><div class="sil-penguin-foot"></div>
+      </div>
+    </div>
+    <div id="title-content">
+      <h1>긴긴밤</h1>
+      <div class="subtitle">The Long, Long Night</div>
+      <div class="tagline">어둠 속에서도, 함께라면 걸을 수 있다</div>
+      <button id="start-btn">혼자 여정을 시작하다</button>
+      <button id="mp-btn" style="background:none;border:1px solid rgba(240,208,128,0.3);color:var(--text-secondary);font-size:13px;padding:10px 32px;border-radius:20px;cursor:pointer;font-family:'Noto Serif KR',serif;margin-top:12px;letter-spacing:1px;animation:titleFade 2s 1.2s ease-out both;">함께 여정하기</button>
+    </div>
   </div>
+  <!-- Multiplayer lobby -->
+  <div id="mp-lobby">
+    <h3>함께 여정하기</h3>
+    <div id="mp-lobby-menu">
+      <button class="mp-btn" id="mp-create">방 만들기</button>
+      <button class="mp-btn" id="mp-join-btn">방 참가하기</button>
+    </div>
+    <div id="mp-host-view" style="display:none;text-align:center;">
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">친구에게 이 코드를 알려주세요</div>
+      <div id="mp-room-code">----</div>
+      <div id="mp-status">대기 중...</div>
+    </div>
+    <div id="mp-join-view" style="display:none;text-align:center;">
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">방 코드를 입력하세요</div>
+      <input id="mp-input" maxlength="4" placeholder="0000">
+      <br><button class="mp-btn" id="mp-connect" style="margin-top:12px;">접속하기</button>
+      <div id="mp-join-status" style="font-size:13px;color:var(--text-secondary);margin-top:8px;"></div>
+    </div>
+    <button id="mp-back">← 돌아가기</button>
+  </div>
+  <!-- Chat -->
+  <div id="chat-box">
+    <div id="chat-msgs"></div>
+    <div id="chat-input-wrap"><input id="chat-input" placeholder="메시지 입력..." maxlength="100"></div>
+    <div id="chat-hint">T키로 채팅</div>
+  </div>
+  <!-- Multiplayer indicator -->
+  <div id="mp-indicator"></div>
   <!-- Scene container -->
   <div id="scene"></div>
   <!-- HUD -->
@@ -202,6 +387,7 @@ body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sa
     <button class="hud-btn" id="music-btn" title="음악">&#9835;</button>
     <button class="hud-btn" id="inv-btn" title="소지품 (I)">소지품</button>
     <button class="hud-btn" id="skin-btn" title="테마">테마</button>
+    <button class="hud-btn" id="egg-btn" title="이스터에그">🥚</button>
   </div>
   <!-- Dialogue -->
   <div id="dialogue-box">
@@ -211,6 +397,12 @@ body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sa
   </div>
   <!-- Choices -->
   <div id="choices-box"></div>
+  <!-- Easter egg panel -->
+  <div id="egg-panel">
+    <h3>이스터에그</h3>
+    <div id="egg-count" class="egg-count"></div>
+    <div id="egg-list"></div>
+  </div>
   <!-- Inventory -->
   <div id="inventory-panel">
     <h3>소지품</h3>
@@ -259,9 +451,10 @@ const $ = id => document.getElementById(id);
 const GS = {
   chapter: 0, hope: 60, items: [], flags: {},
   px: 200, py: 0, companion: null, babyPenguin: false,
-  transitioning: false, dialogueActive: false, choiceActive: false,
+  transitioning: false, dialogueActive: false, choiceActive: false, minigameActive: false,
   musicOn: true, sceneKey: '', facing: 'right',
-  moving: { up:false, down:false, left:false, right:false }
+  moving: { up:false, down:false, left:false, right:false },
+  jumpY: 0, jumpVel: 0, isJumping: false
 };
 
 // ===== AUDIO ENGINE =====
@@ -503,11 +696,29 @@ function createCompanion(sc, def, type){
 
 // ===== MOVEMENT =====
 const SPEED=3;
+const JUMP_FORCE=10;
+const GRAVITY=0.5;
+function jump(){
+  if(GS.isJumping||GS.transitioning||GS.dialogueActive||GS.choiceActive||GS.minigameActive)return;
+  GS.isJumping=true;
+  GS.jumpVel=JUMP_FORCE;
+  if(audioCtx) playNote(392,0.08,'triangle',0.06,sfxGain);
+}
 function gameLoop(){
-  if(!GS.transitioning && !GS.dialogueActive && !GS.choiceActive){
+  if(!GS.transitioning && !GS.dialogueActive && !GS.choiceActive && !GS.minigameActive){
     let dx=0;
     if(GS.moving.left) dx=-SPEED;
     if(GS.moving.right) dx=SPEED;
+    // Jump physics
+    if(GS.isJumping){
+      GS.jumpY+=GS.jumpVel;
+      GS.jumpVel-=GRAVITY;
+      if(GS.jumpY<=0){
+        GS.jumpY=0;
+        GS.jumpVel=0;
+        GS.isJumping=false;
+      }
+    }
     if(dx!==0){
       const def=SCENES[GS.sceneKey];
       const minX=def?.bounds?.left??20;
@@ -543,6 +754,24 @@ function gameLoop(){
       if(p) p.classList.remove('walking');
       const comp=$('companion');
       if(comp) comp.classList.remove('walking');
+    }
+    // Apply jump offset to player and companion
+    const p=$('player');
+    if(p){
+      const def=SCENES[GS.sceneKey];
+      const groundH=def?.ground?parseInt(def.ground.height)||80:80;
+      p.style.bottom=(groundH+GS.jumpY)+'px';
+      p.classList.toggle('jumping',GS.isJumping);
+    }
+    const comp=$('companion');
+    if(comp&&GS.isJumping){
+      const def=SCENES[GS.sceneKey];
+      const groundH=def?.ground?parseInt(def.ground.height)||80:80;
+      comp.style.bottom=(groundH+GS.jumpY*0.3)+'px';
+    } else if(comp&&!GS.isJumping){
+      const def=SCENES[GS.sceneKey];
+      const groundH=def?.ground?parseInt(def.ground.height)||80:80;
+      comp.style.bottom=groundH+'px';
     }
   }
   requestAnimationFrame(gameLoop);
@@ -583,6 +812,26 @@ function startDialogue(lines){
 function showLine(){
   if(dlgIdx>=dialogueQueue.length){ endDialogue(); return; }
   const line=dialogueQueue[dlgIdx];
+  // Mini-game
+  if(line.minigame){
+    try{
+      $('dialogue-box').style.display='none';
+      startMinigame(line.minigame, line.mgCfg||{}, (success)=>{
+        try{ if(success && line.onSuccess) line.onSuccess(); }catch(e2){console.error('[MG] onSuccess error:',e2);}
+        try{ if(!success && line.onFail) line.onFail(); }catch(e3){console.error('[MG] onFail error:',e3);}
+        $('dialogue-box').style.display='block';
+        dlgIdx++;
+        showLine();
+      });
+    }catch(e){
+      console.error('[MG] minigame error:',e);
+      GS.minigameActive=false;
+      $('dialogue-box').style.display='block';
+      dlgIdx++;
+      showLine();
+    }
+    return;
+  }
   // Check for special actions
   if(line.action){
     line.action();
@@ -626,6 +875,191 @@ function endDialogue(){
   $('dialogue-box').style.display='none';
   clearInterval(typeTimer);
 }
+
+// ===== MINI-GAME SYSTEM =====
+function startMinigame(mgType,mgCfg,onDone){
+  console.log('[MG] start:', mgType);
+  GS.minigameActive=true;
+  const ov=document.createElement('div');ov.id='mg-overlay';
+  ov.innerHTML='<div class="mg-title">'+((mgCfg&&mgCfg.title)||'')+'</div><div class="mg-desc">'+((mgCfg&&mgCfg.desc)||'')+'</div><div class="mg-area"></div><div class="mg-hud"><span></span><span></span></div>';
+  $('game').appendChild(ov);
+  const area=ov.querySelector('.mg-area'),tEl=ov.querySelector('.mg-hud>*:first-child'),sEl=ov.querySelector('.mg-hud>*:last-child');
+  let _done=false;const _i=[],_t=[];
+  const si=(fn,ms)=>{const id=setInterval(fn,ms);_i.push(id);return id;};
+  const st=(fn,ms)=>{const id=setTimeout(fn,ms);_t.push(id);return id;};
+  function mgEnd(success){
+    if(_done)return;_done=true;_i.forEach(clearInterval);_t.forEach(clearTimeout);
+    console.log('[MG] end:', mgType, success);
+    const r=document.createElement('div');r.className='mg-result';
+    r.innerHTML='<div class="mg-result-text">'+(success?'✨':'💨')+'</div>';
+    ov.appendChild(r);requestAnimationFrame(()=>r.classList.add('show'));
+    if(success&&audioCtx)try{playNote(659,0.2,'triangle',0.1,sfxGain);}catch(e){}
+    setTimeout(()=>{ov.remove();GS.minigameActive=false;onDone(success);},1000);
+  }
+  if(!MG[mgType]){console.error('[MG] Unknown type:',mgType);GS.minigameActive=false;onDone(false);return;}
+  st(()=>{try{MG[mgType](area,tEl,sEl,mgCfg||{},mgEnd,si,st);}catch(e){console.error('[MG] game error:',e);mgEnd(false);}},600);
+}
+const MG={};
+
+// 1. starCatch - 별 잡기
+MG.starCatch=(a,tE,sE,c,end,si,st)=>{
+  let s=0,g=c.goal||5,t=c.time||10;
+  sE.textContent='⭐ 0/'+g;tE.textContent=t+'초';
+  function mk(){
+    if(s>=g)return;
+    const d=document.createElement('div');d.className='mg-item';d.textContent='⭐';
+    d.style.left=(10+Math.random()*76)+'%';d.style.top=(8+Math.random()*68)+'%';
+    d.onclick=()=>{s++;sE.textContent='⭐ '+s+'/'+g;d.classList.add('mg-pop');st(()=>d.remove(),200);playNote(440+s*60,.12,'triangle',.12,sfxGain);if(s>=g)end(true);else st(mk,300);};
+    a.appendChild(d);st(()=>{if(d.parentNode){d.classList.add('mg-fade');st(()=>{d.remove();st(mk,100);},300);}},2200);
+  }
+  mk();st(mk,600);st(mk,1200);
+  si(()=>{t--;tE.textContent=t+'초';if(t<=0)end(s>=g);},1000);
+};
+
+// 2. heartBeat - 리듬 맞추기
+MG.heartBeat=(a,tE,sE,c,end,si,st)=>{
+  let s=0,r=0,g=c.goal||3,tot=c.total||5;
+  sE.textContent='💛 0/'+g;
+  const ring=document.createElement('div');ring.className='mg-ring';a.appendChild(ring);
+  function beat(){
+    if(r>=tot){st(()=>end(s>=g),300);return;}
+    r++;tE.textContent=r+'/'+tot;
+    const h=document.createElement('div');h.className='mg-heart';h.textContent='💛';
+    h.style.top='50%';h.style.transform='translateY(-50%)';
+    let x=-30,hit=false;h.style.left=x+'px';a.appendChild(h);
+    const mv=si(()=>{x+=3;h.style.left=x+'px';if(x>a.offsetWidth+30){clearInterval(mv);h.remove();st(beat,300);}},16);
+    h.onclick=()=>{
+      if(hit)return;hit=true;clearInterval(mv);
+      const ctr=a.offsetWidth/2;
+      if(Math.abs(x-ctr)<45){s++;sE.textContent='💛 '+s+'/'+g;h.classList.add('mg-pop');playNote(523,.12,'triangle',.12,sfxGain);}
+      else{h.style.opacity='.3';}
+      st(()=>{h.remove();st(beat,200);},250);
+    };
+  }
+  st(beat,400);
+};
+
+// 3. dodge - 피하기
+MG.dodge=(a,tE,sE,c,end,si,st)=>{
+  let t=c.time||8,hp=3,px=50;
+  sE.textContent='❤️❤️❤️';tE.textContent=t+'초';
+  const p=document.createElement('div');p.className='mg-player';p.textContent='🦏';
+  p.style.left='50%';p.style.bottom='10px';a.appendChild(p);
+  a.onclick=(e)=>{const r=a.getBoundingClientRect();px=((e.clientX-r.left)/r.width)*100;px=Math.max(5,Math.min(95,px));p.style.left=px+'%';};
+  si(()=>{
+    const d=document.createElement('div');d.className='mg-danger';d.textContent=c.icon||'⚡';
+    const dx=5+Math.random()*85;d.style.left=dx+'%';d.style.top='-30px';a.appendChild(d);
+    let y=-30;
+    const f=si(()=>{
+      y+=3.5;d.style.top=y+'px';
+      if(y>a.offsetHeight){clearInterval(f);d.remove();}
+      else if(y>a.offsetHeight-55&&Math.abs(dx-px)<12){hp--;sE.textContent='❤️'.repeat(Math.max(0,hp));clearInterval(f);d.remove();if(hp<=0)end(false);}
+    },25);
+  },700);
+  si(()=>{t--;tE.textContent=t+'초';if(t<=0)end(hp>0);},1000);
+};
+
+// 4. findLight - 빛 찾기
+MG.findLight=(a,tE,sE,c,end,si,st)=>{
+  let s=0,g=c.goal||3,t=c.time||12;
+  sE.textContent='💫 0/'+g;tE.textContent=t+'초';
+  a.style.background='#030308';
+  function mk(){
+    if(s>=g)return;
+    const d=document.createElement('div');d.className='mg-light';
+    d.style.left=(8+Math.random()*78)+'%';d.style.top=(8+Math.random()*70)+'%';
+    d.onclick=()=>{s++;sE.textContent='💫 '+s+'/'+g;d.remove();playNote(587,.15,'sine',.1,sfxGain);if(s>=g)end(true);else st(mk,400);};
+    a.appendChild(d);st(()=>{if(d.parentNode){d.remove();st(mk,200);}},1600);
+  }
+  mk();st(mk,800);
+  si(()=>{t--;tE.textContent=t+'초';if(t<=0)end(s>=g);},1000);
+};
+
+// 5. mash - 연타
+MG.mash=(a,tE,sE,c,end,si,st)=>{
+  let pw=0,t=c.time||8;tE.textContent=t+'초';
+  a.innerHTML='<div class="mg-mash-label">'+(c.label||'연타하세요!')+'</div><div class="mg-mash-icon">'+(c.icon||'🔥')+'</div><div class="mg-bar-bg"><div class="mg-bar-fill"></div></div>';
+  const fill=a.querySelector('.mg-bar-fill'),icon=a.querySelector('.mg-mash-icon');
+  a.onclick=()=>{pw=Math.min(100,pw+3.5);fill.style.width=pw+'%';sE.textContent=Math.floor(pw)+'%';icon.classList.remove('mg-bounce');void icon.offsetWidth;icon.classList.add('mg-bounce');if(pw>=100)end(true);};
+  si(()=>{pw=Math.max(0,pw-1.2);fill.style.width=pw+'%';sE.textContent=Math.floor(pw)+'%';},100);
+  si(()=>{t--;tE.textContent=t+'초';if(t<=0)end(pw>=100);},1000);
+};
+
+// 6. rainCatch - 빗방울 받기
+MG.rainCatch=(a,tE,sE,c,end,si,st)=>{
+  let s=0,g=c.goal||8,t=c.time||12,px=50;
+  sE.textContent='💧 0/'+g;tE.textContent=t+'초';
+  const ct=document.createElement('div');ct.className='mg-catcher';ct.textContent='🌿';ct.style.left='50%';a.appendChild(ct);
+  a.onclick=(e)=>{const r=a.getBoundingClientRect();px=((e.clientX-r.left)/r.width)*100;px=Math.max(5,Math.min(95,px));ct.style.left=px+'%';};
+  si(()=>{
+    const d=document.createElement('div');d.className='mg-drop';d.textContent='💧';
+    const dx=8+Math.random()*82;d.style.left=dx+'%';d.style.top='-20px';a.appendChild(d);
+    let y=-20;
+    const f=si(()=>{
+      y+=2.5;d.style.top=y+'px';
+      if(y>a.offsetHeight-50&&Math.abs(dx-px)<10){s++;sE.textContent='💧 '+s+'/'+g;clearInterval(f);d.remove();playNote(440+s*30,.1,'sine',.1,sfxGain);if(s>=g)end(true);}
+      if(y>a.offsetHeight){clearInterval(f);d.remove();}
+    },25);
+  },800);
+  si(()=>{t--;tE.textContent=t+'초';if(t<=0)end(s>=g);},1000);
+};
+
+// 7. starConnect - 별 잇기
+MG.starConnect=(a,tE,sE,c,end,si,st)=>{
+  let next=1;const tot=c.total||5;sE.textContent='1/'+tot;tE.textContent='';
+  const canvas=document.createElement('canvas');canvas.width=480;canvas.height=280;
+  canvas.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
+  a.appendChild(canvas);const cx=canvas.getContext('2d');cx.strokeStyle='rgba(240,208,128,0.6)';cx.lineWidth=2;
+  const pos=[{x:20,y:25},{x:75,y:15},{x:85,y:55},{x:45,y:75},{x:12,y:58}];
+  pos.forEach((p,i)=>{
+    const s=document.createElement('div');s.className='mg-star-num';s.textContent=''+(i+1);
+    s.style.left=p.x+'%';s.style.top=p.y+'%';s.dataset.idx=i+1;
+    s.onclick=()=>{
+      if(parseInt(s.dataset.idx)!==next)return;
+      s.classList.add('mg-done');playNote(392+next*50,.12,'triangle',.1,sfxGain);
+      if(next>1){const pv=pos[next-2];cx.beginPath();cx.moveTo(pv.x/100*480,pv.y/100*280);cx.lineTo(p.x/100*480,p.y/100*280);cx.stroke();}
+      next++;sE.textContent=Math.min(next,tot)+'/'+tot;
+      if(next>tot)st(()=>end(true),400);
+    };
+    a.appendChild(s);
+  });
+};
+
+// 8. warmEgg - 알 따뜻하게
+MG.warmEgg=(a,tE,sE,c,end,si,st)=>{
+  let tmp=50,t=c.time||10;tE.textContent=t+'초';
+  a.innerHTML='<div class="mg-egg">🥚</div><div class="mg-temp-bg"><div class="mg-temp-fill" style="width:50%"></div></div>';
+  const egg=a.querySelector('.mg-egg'),fill=a.querySelector('.mg-temp-fill');
+  a.onclick=()=>{tmp=Math.min(100,tmp+7);egg.classList.remove('mg-bounce');void egg.offsetWidth;egg.classList.add('mg-bounce');};
+  si(()=>{tmp=Math.max(0,tmp-1.8);fill.style.width=tmp+'%';fill.style.background=tmp>30?'var(--hope-color)':'var(--danger-color)';sE.textContent=tmp>50?'따뜻해요 ☀️':'추워요... ❄️';if(tmp<=0)end(false);},100);
+  si(()=>{t--;tE.textContent=t+'초';if(t<=0)end(tmp>20);},1000);
+};
+
+// 9. waveJump - 파도 점프
+MG.waveJump=(a,tE,sE,c,end,si,st)=>{
+  let s=0,g=c.goal||5,jumping=false;
+  sE.textContent='🌊 0/'+g;tE.textContent='';
+  const pg=document.createElement('div');pg.className='mg-penguin';pg.textContent='🐧';
+  pg.style.cssText='position:absolute;bottom:30px;left:35%;';a.appendChild(pg);
+  a.onclick=()=>{if(jumping)return;jumping=true;pg.style.bottom='100px';st(()=>{pg.style.bottom='30px';jumping=false;},500);};
+  function wave(){
+    if(s>=g)return;
+    const w=document.createElement('div');w.className='mg-wave-el';w.textContent='🌊';
+    let x=a.offsetWidth+30;w.style.cssText='position:absolute;bottom:15px;left:'+x+'px;font-size:30px;z-index:1;';a.appendChild(w);
+    let checked=false;
+    const mv=si(()=>{
+      x-=4;w.style.left=x+'px';
+      if(!checked&&x<a.offsetWidth*0.4&&x>a.offsetWidth*0.25){checked=true;if(jumping){s++;sE.textContent='🌊 '+s+'/'+g;w.style.opacity='.3';playNote(523,.1,'sine',.08,sfxGain);if(s>=g)st(()=>end(true),300);}}
+      if(x<-40){clearInterval(mv);w.remove();}
+    },25);
+    st(wave,1500+Math.random()*500);
+  }
+  st(wave,600);
+};
+
+// ===== HELPER FUNCTIONS =====
+function setSadVignette(show){if(show)$('vignette').classList.add('show');else $('vignette').classList.remove('show');}
+function activateCompanion(){GS.companion='chiku';buildScene(GS.sceneKey);}
 
 // ===== CHOICES =====
 function showChoices(choices){
@@ -859,6 +1293,7 @@ const SCENES={
        sprite:'<div style="width:60px;height:50px;position:relative;pointer-events:none;"><div style="position:absolute;width:50px;height:35px;background:linear-gradient(135deg,#8a8a80,#6a6a60);border-radius:25px 20px 8px 8px;bottom:10px;left:5px;"></div><div style="position:absolute;width:18px;height:25px;background:#7a7a70;border-radius:0 0 8px 8px;bottom:10px;left:35px;transform:rotate(10deg);"></div><div style="position:absolute;width:6px;height:12px;background:#6a6a60;border-radius:0 0 3px 3px;bottom:0;left:10px;"></div><div style="position:absolute;width:6px;height:12px;background:#6a6a60;border-radius:0 0 3px 3px;bottom:0;left:22px;"></div><div style="position:absolute;width:6px;height:12px;background:#6a6a60;border-radius:0 0 3px 3px;bottom:0;left:32px;"></div><div style="position:absolute;width:6px;height:12px;background:#6a6a60;border-radius:0 0 3px 3px;bottom:0;left:42px;"></div><div style="position:absolute;width:3px;height:3px;background:#222;border-radius:50%;bottom:36px;left:44px;"></div></div>',
        dialogue:()=>[
          {speaker:'코끼리 아줌마',text:'노든아, 아직 안 잤니? 별이 참 밝은 밤이구나.'},
+         {minigame:'starCatch',mgCfg:{title:'밤하늘의 별',desc:'반짝이는 별을 찾아 클릭하세요!',goal:5,time:10},onSuccess:()=>changeHope(3)},
          {speaker:'노든',text:'아줌마... 나는 왜 다른 애들이랑 다르게 생겼어요?'},
          {speaker:'코끼리 아줌마',text:'다르다고? 하하, 네가 특별한 거란다. 너의 엄마도 아주 멋진 코뿔소였어.'},
          {speaker:'코끼리 아줌마',text:'네 엄마가 남긴 게 하나 있단다. 이 작은 조약돌... 항상 가지고 다녀렴.'},
@@ -872,6 +1307,7 @@ const SCENES={
     exits:[
       {x:880,type:'dialogue',dialogue:[
         {speaker:'노든',text:'(고아원의 끝이다. 저 너머에는 넓은 세상이 있겠지...)'},
+        {minigame:'mash',mgCfg:{title:'용기를 내서!',desc:'연타해서 용기를 모아보세요!',icon:'💪',label:'용기를 내자!',time:6},onSuccess:()=>changeHope(3)},
         {choice:[
           {text:'세상을 보러 떠나볼까',flag:'leftEarly',hope:5,chapter:2,scene:'ch2_savanna',playerX:80},
           {text:'조금 더 여기 있을까',next:[
@@ -901,6 +1337,7 @@ const SCENES={
        dialogue:()=>{
          if(GS.flags.metFamily) return [
            {speaker:'코뿔소 가족',text:'노든, 함께라서 좋구나. 오늘 밤 별이 참 많다.'},
+           {minigame:'starCatch',mgCfg:{title:'밤하늘의 별',desc:'가족과 함께 별을 찾아보세요!',goal:4,time:8},onSuccess:()=>changeHope(2)},
            {speaker:'노든',text:'네... 가족이 있다는 게 이런 거군요.'}
          ];
          GS.flags.metFamily=true;
@@ -910,6 +1347,7 @@ const SCENES={
            {speaker:'코뿔소',text:'세상에, 이렇게 어린 코뿔소가 혼자 돌아다니다니. 우리 가족과 함께하지 않을래?'},
            {speaker:'노든',text:'정말요? 정말... 같이 있어도 돼요?'},
            {speaker:'코뿔소',text:'물론이지. 여기가 네 자리야, 노든.'},
+           {minigame:'heartBeat',mgCfg:{title:'두근두근',desc:'💛이 원 안에 올 때 클릭하세요!',goal:3,total:5},onSuccess:()=>changeHope(3)},
            {action:()=>changeHope(15)},
            {speaker:'',text:'(노든은 생전 처음으로 가족이라는 걸 알게 되었다.)'}
          ];
@@ -935,6 +1373,7 @@ const SCENES={
          }},
          {speaker:'',text:'어둠 속에서 날카로운 소리가 들렸다.'},
          {speaker:'',text:'밀렵꾼들이었다.'},
+         {minigame:'dodge',mgCfg:{title:'도망쳐!',desc:'클릭으로 이동하여 위험을 피하세요!',icon:'⚡',time:7},onSuccess:()=>changeHope(3)},
          {speaker:'',text:'노든은 도망쳤다. 뒤를 돌아볼 수 없었다.'},
          {speaker:'',text:'...'},
          {speaker:'',text:'가족은, 더 이상 없었다.'},
@@ -972,8 +1411,10 @@ const SCENES={
        dialogue:()=>{
          if(GS.flags.metAngabu) return [
            {speaker:'앙가부',text:'노든, 오늘도 하늘을 봤어? 저 틈 사이로 보이는 별 말이야.'},
+           {minigame:'starCatch',mgCfg:{title:'틈새의 별',desc:'보이는 별을 클릭하세요!',goal:3,time:8},onSuccess:()=>changeHope(2)},
            {speaker:'노든',text:'응... 작은 별인데, 볼 때마다 조금 위안이 돼.'},
-           {speaker:'앙가부',text:'우리도 언젠가 저 별 아래 서게 될 거야. 믿어.'}
+           {speaker:'앙가부',text:'우리도 언젠가 저 별 아래 서게 될 거야. 믿어.'},
+           {minigame:'heartBeat',mgCfg:{title:'희망의 박동',desc:'💛이 원 안에 올 때 클릭하세요!',goal:2,total:3},onSuccess:()=>changeHope(2)}
          ];
          GS.flags.metAngabu=true;
          return [
@@ -983,6 +1424,7 @@ const SCENES={
            {speaker:'노든',text:'가족을... 잃었어.'},
            {speaker:'앙가부',text:'...나도 그래. 여기 있는 건 다 그런 사연이 있어.'},
            {speaker:'앙가부',text:'하지만 말이야, 나는 포기하지 않아. 언젠가 여기서 나갈 거야.'},
+           {minigame:'findLight',mgCfg:{title:'철창 너머의 별',desc:'어둠 속 빛을 찾아 클릭하세요',goal:3,time:10},onSuccess:()=>changeHope(3)},
            {speaker:'앙가부',text:'이거 받아. 내가 아끼는 건데... 너한테 줄게.'},
            {action:()=>addItem({id:'angabu_gift',name:'앙가부의 선물',icon:'🌰',desc:'앙가부가 소중히 간직하던 작은 도토리'})},
            {speaker:'노든',text:'...고마워, 앙가부.'},
@@ -998,6 +1440,7 @@ const SCENES={
          {speaker:'',text:'(어느 날 밤, 동물원에 낯선 사람들이 들어왔다.)'},
          {speaker:'',text:'(그들의 눈은 어둠 속에서도 차갑게 빛났다. 뿔을 노리는 사냥꾼들이었다.)'},
          {speaker:'앙가부',text:'노든, 숨어! 저 사람들은 위험해!'},
+         {minigame:'dodge',mgCfg:{title:'숨어!',desc:'클릭으로 이동하여 위험을 피하세요!',icon:'🔦',time:5},onSuccess:()=>changeHope(2)},
          {speaker:'노든',text:'앙가부, 너도 빨리!'},
          {speaker:'앙가부',text:'나는 괜찮아. 나는 뿔이 없으니까. 빨리 숨어, 노든!'},
          {speaker:'',text:'(앙가부는 노든을 감추려고 사냥꾼들 앞을 가로막았다.)'},
@@ -1045,6 +1488,7 @@ const SCENES={
        dialogue:()=>[
          {speaker:'',text:'(연기와 비명 속에서, 작은 그림자가 떨고 있었다.)'},
          {speaker:'',text:'(알 하나를 꼭 안은 채, 갈 곳을 잃은 작은 펭귄.)'},
+         {minigame:'dodge',mgCfg:{title:'연기를 피해!',desc:'클릭으로 이동하여 위험을 피하세요',icon:'💨',time:6},onSuccess:()=>changeHope(3)},
          {speaker:'노든',text:'...거기 괜찮아? 위험해, 빨리 나가야 해!'},
          {speaker:'???',text:'...알이... 알을 지켜야 해... 이 아이를...'},
          {speaker:'노든',text:'알? 네 아이야?'},
@@ -1052,6 +1496,7 @@ const SCENES={
          {choice:[
            {text:'치쿠와 알을 지키며 함께 달린다',flag:'metChiku',hope:10,next:[
              {speaker:'노든',text:'내 뒤에 붙어. 내가 길을 열게.'},
+             {minigame:'mash',mgCfg:{title:'불길 탈출!',desc:'연타해서 출구를 향해 돌진하세요!',icon:'🔥',label:'뚫고 나가자!',time:7},onSuccess:()=>changeHope(5)},
              {speaker:'치쿠',text:'...고마워.'},
              {speaker:'',text:'(노든은 커다란 몸으로 연기와 불을 헤치며 달렸다.\n작은 치쿠는 알을 안고 노든의 그림자 속에서 따라왔다.)'},
              {speaker:'치쿠',text:'이쪽에 빛이 보여! 출구야!'},
@@ -1060,6 +1505,7 @@ const SCENES={
            ]},
            {text:'알을 대신 들어준다',flag:'metChiku',hope:15,next:[
              {speaker:'노든',text:'내가 알을 들게. 넌 내 뒤에서 따라와.'},
+             {minigame:'mash',mgCfg:{title:'불길 탈출!',desc:'연타해서 출구를 향해 돌진하세요!',icon:'🔥',label:'뚫고 나가자!',time:7},onSuccess:()=>changeHope(5)},
              {speaker:'치쿠',text:'...정말? 조심해서... 따뜻하게 해줘야 해.'},
              {speaker:'',text:'(노든은 조심스럽게 알을 뿔 사이에 올려놓았다.)'},
              {speaker:'치쿠',text:'...커다란 코뿔소가 펭귄 알을 품다니. 이상한 밤이야.'},
@@ -1099,6 +1545,7 @@ const SCENES={
        sprite:'<div class="chiku-sprite"><div class="chiku-body"></div><div class="chiku-belly"></div><div class="chiku-egg"></div><div class="chiku-beak"></div><div class="chiku-eye l"></div><div class="chiku-eye r"></div><div class="chiku-foot l"></div><div class="chiku-foot r"></div></div>',
        dialogue:()=>[
          {speaker:'',text:'(비가 내리는 숲에서 둘은 잠시 쉬기로 했다.)'},
+         {minigame:'rainCatch',mgCfg:{title:'빗방울 모으기',desc:'떨어지는 빗방울을 클릭으로 모아보세요',goal:6,time:12},onSuccess:()=>changeHope(3)},
          {speaker:'치쿠',text:'노든... 아까는 정말 무서웠어. 고마워, 지켜줘서.'},
          {speaker:'노든',text:'...나도 무서웠어. 하지만 혼자가 아니어서 달릴 수 있었어.'},
          {speaker:'치쿠',text:'노든은 왜 그곳에 있었어? 동물원에.'},
@@ -1119,6 +1566,7 @@ const SCENES={
        sprite:'<div class="chiku-sprite"><div class="chiku-body"></div><div class="chiku-belly"></div><div class="chiku-egg"></div><div class="chiku-beak"></div><div class="chiku-eye l"></div><div class="chiku-eye r"></div><div class="chiku-foot l"></div><div class="chiku-foot r"></div></div>',
        dialogue:()=>[
          {speaker:'치쿠',text:'비가 좀 약해진 것 같아. 슬슬 갈까?'},
+         {minigame:'findLight',mgCfg:{title:'길 찾기',desc:'어둠 속 빛을 찾아 클릭하세요',goal:3,time:10},onSuccess:()=>changeHope(2)},
          {speaker:'노든',text:'응. 동쪽으로 가면 바다가 있을 거야.'},
          {speaker:'치쿠',text:'알도 따뜻해. 이 아이도 준비된 것 같아.'},
          {action:()=>changeHope(5)}
@@ -1150,6 +1598,7 @@ const SCENES={
          {speaker:'노든',text:'바다를 찾고 있어요.'},
          {speaker:'늙은 부엉이',text:'바다라... 여기서 꽤 멀지. 두 갈래 길이 있단다.'},
          {speaker:'늙은 부엉이',text:'산길은 험하지만 가까워. 강변길은 편하지만 돌아가야 하지.'},
+         {minigame:'starConnect',mgCfg:{title:'별자리 잇기',desc:'번호 순서대로 별을 이어보세요',total:5},onSuccess:()=>changeHope(3)},
          {choice:[
            {text:'산길로 간다',flag:'mountainPath',hope:5,next:[
              {speaker:'늙은 부엉이',text:'용감한 선택이구나. 산에서는 별이 더 가까이 보인단다.'},
@@ -1169,6 +1618,7 @@ const SCENES={
          {speaker:'치쿠',text:'노든, 별이 정말 많다...'},
          {speaker:'노든',text:'응. 이렇게 많은 별은 처음 봐.'},
          {speaker:'치쿠',text:'우리가 걸어온 길만큼 별이 있는 것 같아.'},
+         {minigame:'starCatch',mgCfg:{title:'별빛 여정',desc:'별빛을 모아보세요!',goal:4,time:8},onSuccess:()=>changeHope(3)},
          {speaker:'노든',text:'...치쿠, 알은 괜찮아?'},
          {speaker:'치쿠',text:'응, 따뜻해. 이 아이도 별을 보고 있을까?'},
          {speaker:'노든',text:'분명 보고 있을 거야.'},
@@ -1200,7 +1650,8 @@ const SCENES={
        sprite:'<div class="chiku-sprite" style="opacity:0.85;"><div class="chiku-body"></div><div class="chiku-belly"></div><div class="chiku-egg"></div><div class="chiku-beak"></div><div class="chiku-eye l"></div><div class="chiku-eye r"></div><div class="chiku-foot l"></div><div class="chiku-foot r"></div></div>',
        dialogue:()=>{
          if(GS.flags.chikuFarewell) return [
-           {speaker:'',text:'(치쿠는 조용히 잠들어 있다. 알이 조금씩 움직이고 있다.)'}
+           {speaker:'',text:'(치쿠는 조용히 잠들어 있다. 알이 조금씩 움직이고 있다.)'},
+           {minigame:'warmEgg',mgCfg:{title:'알 돌보기',desc:'클릭해서 알의 온도를 유지하세요',time:6},onSuccess:()=>changeHope(2)}
          ];
          GS.flags.chikuFarewell=true;
          return [
@@ -1222,6 +1673,7 @@ const SCENES={
            {speaker:'',text:'...'},
            {speaker:'',text:'그리고, 알이 움직이기 시작했다.'},
            {speaker:'',text:'톡. 톡톡.'},
+           {minigame:'warmEgg',mgCfg:{title:'알을 따뜻하게',desc:'클릭해서 알의 온도를 유지하세요!',time:8},onSuccess:()=>changeHope(5)},
            {speaker:'',text:'작고 보송보송한 새끼 펭귄이 세상에 나왔다.'},
            {action:()=>{
              GS.companion=null;
@@ -1268,6 +1720,7 @@ const SCENES={
        dialogue:()=>[
          {speaker:'새끼 펭귄',text:'삐약삐약!'},
          {speaker:'',text:'(새끼 펭귄이 처음으로 바다를 보았다. 작은 날개를 파닥거렸다.)'},
+         {minigame:'waveJump',mgCfg:{title:'첫 파도',desc:'클릭으로 점프하여 파도를 넘으세요!',goal:4},onSuccess:()=>changeHope(3)},
          {speaker:'노든',text:'봐... 이게 바다야. 치쿠가 너에게 보여주고 싶었던 것.'},
          {speaker:'새끼 펭귄',text:'삐약...?'},
          {speaker:'노든',text:'너의 엄마는 아주 용감한 펭귄이었어. 너를 정말 사랑했어.'},
@@ -1311,8 +1764,10 @@ const SCENES={
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') GS.moving.left=true;
   if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') GS.moving.right=true;
+  if(e.key==='ArrowUp'||e.key==='w'||e.key==='W'){ e.preventDefault(); jump(); }
   if(e.key===' '||e.key==='Enter'){
     e.preventDefault();
+    if(GS.minigameActive) return;
     if(GS.dialogueActive) advanceDialogue();
     else {
       // Try interact with nearest NPC
@@ -1335,16 +1790,22 @@ document.addEventListener('keyup',e=>{
 // Dialogue box click
 $('dialogue-box').addEventListener('click',e=>{
   e.stopPropagation();
+  if(GS.minigameActive) return;
   if(GS.dialogueActive) advanceDialogue();
 });
 
 // Mobile controls
 document.querySelectorAll('.dpad-btn').forEach(btn=>{
   const dir=btn.dataset.dir;
-  btn.addEventListener('touchstart',e=>{e.preventDefault();GS.moving[dir]=true;});
-  btn.addEventListener('touchend',e=>{e.preventDefault();GS.moving[dir]=false;});
-  btn.addEventListener('mousedown',()=>GS.moving[dir]=true);
-  btn.addEventListener('mouseup',()=>GS.moving[dir]=false);
+  if(dir==='up'){
+    btn.addEventListener('touchstart',e=>{e.preventDefault();jump();});
+    btn.addEventListener('mousedown',()=>jump());
+  } else {
+    btn.addEventListener('touchstart',e=>{e.preventDefault();GS.moving[dir]=true;});
+    btn.addEventListener('touchend',e=>{e.preventDefault();GS.moving[dir]=false;});
+    btn.addEventListener('mousedown',()=>GS.moving[dir]=true);
+    btn.addEventListener('mouseup',()=>GS.moving[dir]=false);
+  }
 });
 $('m-interact').addEventListener('click',()=>{
   if(GS.dialogueActive){ advanceDialogue(); return; }
@@ -1383,10 +1844,628 @@ $('start-btn').addEventListener('click',()=>{
 const savedSkin=localStorage.getItem('ggg-skin');
 if(savedSkin) applySkin(savedSkin);
 
+// Title screen stars & particles
+(function(){
+  const starBox=$('title-stars');
+  if(!starBox)return;
+  for(let i=0;i<80;i++){
+    const s=document.createElement('div');s.className='star';
+    s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';
+    s.style.setProperty('--dur',(2+Math.random()*5)+'s');
+    s.style.width=(1+Math.random()*2.5)+'px';s.style.height=s.style.width;
+    s.style.animationDelay=Math.random()*3+'s';
+    starBox.appendChild(s);
+  }
+  const partBox=$('title-particles');
+  if(!partBox)return;
+  for(let i=0;i<15;i++){
+    const p=document.createElement('div');p.className='title-particle';
+    p.style.left=Math.random()*100+'%';
+    p.style.setProperty('--dur',(6+Math.random()*8)+'s');
+    p.style.setProperty('--dx',(Math.random()*40-20)+'px');
+    p.style.animationDelay=Math.random()*8+'s';
+    p.style.width=(1+Math.random()*2)+'px';p.style.height=p.style.width;
+    partBox.appendChild(p);
+  }
+})();
+
 // Fade in/out animation for notifications
 const style=document.createElement('style');
 style.textContent='@keyframes fadeInOut{0%{opacity:0;transform:translateX(-50%) translateY(-10px);}15%{opacity:1;transform:translateX(-50%) translateY(0);}85%{opacity:1;}100%{opacity:0;}}';
 document.head.appendChild(style);
+
+// ===== EASTER EGGS =====
+
+// Easter egg tracker
+const EGGS_DEF=[
+  {id:'konami',icon:'🌈',name:'무지개 노든',hint:'비밀 커맨드를 입력해보세요'},
+  {id:'moon',icon:'🌙',name:'달의 소원',hint:'타이틀 화면에서 달을 찾아보세요'},
+  {id:'jumpburst',icon:'✨',name:'별빛 폭발',hint:'신나게 뛰어보세요!'},
+  {id:'angabu',icon:'⭐',name:'앙가부의 별',hint:'소중한 이름을 불러보세요'},
+  {id:'chiku',icon:'🐧',name:'치쿠의 비',hint:'그리운 이름을 불러보세요'},
+  {id:'noden',icon:'🦏',name:'노든의 발구름',hint:'자신의 이름을 불러보세요'}
+];
+let eggsFound=JSON.parse(localStorage.getItem('ggg-eggs')||'[]');
+function unlockEgg(id){
+  if(eggsFound.includes(id))return;
+  eggsFound.push(id);
+  localStorage.setItem('ggg-eggs',JSON.stringify(eggsFound));
+  renderEggs();
+}
+function renderEggs(){
+  const list=$('egg-list');
+  if(!list)return;
+  const found=eggsFound.length, total=EGGS_DEF.length;
+  $('egg-count').textContent=found+' / '+total+' 발견';
+  list.innerHTML='';
+  EGGS_DEF.forEach(eg=>{
+    const f=eggsFound.includes(eg.id);
+    const d=document.createElement('div');
+    d.className='egg-item'+(f?' found':'');
+    d.innerHTML='<div class="egg-icon">'+eg.icon+'</div><div class="egg-info"><div class="egg-name">'+(f?eg.name:'???')+'</div><div class="egg-hint">'+(f?'발견!':eg.hint)+'</div></div>';
+    list.appendChild(d);
+  });
+}
+function toggleEggPanel(){
+  $('egg-panel').classList.toggle('open');
+  renderEggs();
+}
+$('egg-btn').addEventListener('click',toggleEggPanel);
+renderEggs();
+
+// 1. Konami Code → Rainbow Noden! (e.key + e.code 모두 지원)
+const KONAMI_KEY=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+const KONAMI_CODE=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','KeyB','KeyA'];
+let konamiIdx=0, rainbowActive=false;
+document.addEventListener('keydown',e=>{
+  const keyMatch=e.key===KONAMI_KEY[konamiIdx]||(e.key.toLowerCase()===KONAMI_KEY[konamiIdx]);
+  const codeMatch=e.code===KONAMI_CODE[konamiIdx];
+  if(keyMatch||codeMatch){
+    konamiIdx++;
+    if(konamiIdx>=KONAMI_KEY.length){
+      konamiIdx=0;
+      rainbowActive=!rainbowActive;
+      $('game').classList.toggle('rainbow-mode',rainbowActive);
+      unlockEgg('konami');
+      const msg=rainbowActive?'무지개 노든 활성화!':'무지개 모드 해제';
+      easterEggNotif('🌈 '+msg);
+      if(rainbowActive&&audioCtx){
+        [523,587,659,698,784,880,988,1047].forEach((f,i)=>setTimeout(()=>playNote(f,0.15,'triangle',0.1,sfxGain),i*60));
+      }
+    }
+  } else { konamiIdx=0; }
+});
+
+// 2. Title screen moon click → Shooting star
+(function(){
+  const moon=$('title-moon');
+  if(!moon) return;
+  let moonClicks=0;
+  moon.style.cursor='pointer';
+  moon.style.pointerEvents='auto';
+  moon.addEventListener('click',()=>{
+    moonClicks++;
+    // Shooting star
+    const star=document.createElement('div');
+    star.className='shooting-star';
+    star.style.left=(15+Math.random()*60)+'%';
+    star.style.top=(5+Math.random()*30)+'%';
+    star.style.animation='shootingStar 0.8s linear forwards';
+    $('title-screen').appendChild(star);
+    setTimeout(()=>star.remove(),900);
+    if(moonClicks===5){
+      unlockEgg('moon');
+      easterEggNotif('🌙 달이 당신의 소원을 들었습니다');
+      moonClicks=0;
+    }
+  });
+})();
+
+// 3. Jump 7 times quickly → Sparkle burst
+let jumpCount=0, jumpTimer=null;
+const _origJump=jump;
+jump=function(){
+  _origJump();
+  if(!GS.isJumping) return;
+  jumpCount++;
+  clearTimeout(jumpTimer);
+  jumpTimer=setTimeout(()=>{jumpCount=0;},4000);
+  if(jumpCount>=7){
+    jumpCount=0;
+    // Sparkle burst around player
+    const emojis=['✨','⭐','💫','🌟','✨','⭐'];
+    for(let i=0;i<8;i++){
+      const s=document.createElement('div');
+      s.className='sparkle';
+      s.textContent=emojis[i%emojis.length];
+      const angle=(i/8)*Math.PI*2;
+      s.style.setProperty('--sx',(Math.cos(angle)*60)+'px');
+      s.style.setProperty('--sy',(Math.sin(angle)*60-30)+'px');
+      s.style.left=GS.px+'px';
+      const def=SCENES[GS.sceneKey];
+      const groundH=def?.ground?parseInt(def.ground.height)||80:80;
+      s.style.bottom=(groundH+30)+'px';
+      s.style.position='absolute';
+      $('scene').appendChild(s);
+      setTimeout(()=>s.remove(),900);
+    }
+    unlockEgg('jumpburst');
+    easterEggNotif('✨ 노든이 기뻐하고 있어요!');
+    if(audioCtx){
+      [784,880,988,1047,1175].forEach((f,i)=>setTimeout(()=>playNote(f,0.1,'triangle',0.08,sfxGain),i*50));
+    }
+  }
+};
+
+// 4,5,6. 한국어 이름 이스터에그 (영어/한국어 키보드 모두 지원)
+// 한국어 두벌식: 앙가부=dkdrkqn, 치쿠=clzn, 노든=shems
+let secretBuf='', codeBuf='';
+function codeToChar(code){ return code.startsWith('Key')?code[3].toLowerCase():''; }
+
+function triggerAngabu(){
+  unlockEgg('angabu');
+  easterEggNotif('⭐ 앙가부가 별이 되어 지켜보고 있어요');
+  for(let i=0;i<12;i++){
+    const s=document.createElement('div');
+    s.className='memorial-star';
+    s.textContent='⭐';
+    s.style.left=(10+Math.random()*80)+'%';
+    s.style.top=(40+Math.random()*40)+'%';
+    s.style.fontSize=(12+Math.random()*16)+'px';
+    s.style.animationDelay=(Math.random()*1.5)+'s';
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(),5000);
+  }
+  if(audioCtx){
+    [392,440,523,587,659,523,440,392].forEach((f,i)=>setTimeout(()=>playNote(f,0.6,'sine',0.07,sfxGain),i*250));
+  }
+}
+function triggerChiku(){
+  unlockEgg('chiku');
+  easterEggNotif('🐧 치쿠가 고마워하고 있어요');
+  for(let i=0;i<15;i++){
+    const p=document.createElement('div');
+    p.style.cssText='position:fixed;font-size:20px;pointer-events:none;z-index:300;top:-30px;left:'+(Math.random()*100)+'%;animation:fall '+(1.5+Math.random())+'s linear forwards;';
+    p.textContent='🐧';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),3000);
+  }
+  if(audioCtx){
+    [523,587,659,784].forEach((f,i)=>setTimeout(()=>playNote(f,0.2,'sine',0.08,sfxGain),i*120));
+  }
+}
+function triggerNoden(){
+  unlockEgg('noden');
+  easterEggNotif('🦏 쿵! 노든이 힘차게 발을 굴렀어요!');
+  document.body.style.animation='none';
+  document.body.offsetWidth;
+  document.body.style.animation='screenShake 0.4s';
+  if(audioCtx){
+    playNote(80,0.5,'square',0.15,sfxGain);
+    setTimeout(()=>playNote(60,0.6,'square',0.12,sfxGain),200);
+  }
+}
+
+document.addEventListener('keydown',e=>{
+  // English buffer (영어 모드)
+  if(e.key.length===1) secretBuf+=e.key.toLowerCase();
+  if(secretBuf.length>30) secretBuf=secretBuf.slice(-30);
+  // Physical key buffer (한국어 모드 - 두벌식 물리 키)
+  const ch=codeToChar(e.code);
+  if(ch) codeBuf+=ch;
+  if(codeBuf.length>30) codeBuf=codeBuf.slice(-30);
+
+  // 앙가부: 영어 "angabu" 또는 한국어 물리키 "dkdrkqn"
+  if(secretBuf.endsWith('angabu')||codeBuf.endsWith('dkdrkqn')){
+    secretBuf='';codeBuf='';triggerAngabu();
+  }
+  // 치쿠: 영어 "chiku" 또는 한국어 물리키 "clzn"
+  if(secretBuf.endsWith('chiku')||codeBuf.endsWith('clzn')){
+    secretBuf='';codeBuf='';triggerChiku();
+  }
+  // 노든: 영어 "noden" 또는 한국어 물리키 "shems"
+  if(secretBuf.endsWith('noden')||codeBuf.endsWith('shems')){
+    secretBuf='';codeBuf='';triggerNoden();
+  }
+});
+
+// Screen shake for noden easter egg
+const shakeStyle=document.createElement('style');
+shakeStyle.textContent='@keyframes screenShake{0%,100%{transform:translate(0,0);}10%{transform:translate(-4px,2px);}20%{transform:translate(4px,-2px);}30%{transform:translate(-3px,3px);}40%{transform:translate(3px,-1px);}50%{transform:translate(-2px,2px);}60%{transform:translate(2px,-2px);}70%{transform:translate(-1px,1px);}80%{transform:translate(1px,-1px);}}';
+document.head.appendChild(shakeStyle);
+
+// Easter egg notification helper
+function easterEggNotif(msg){
+  const n=document.createElement('div');
+  n.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.85);border:1px solid var(--text-accent);color:var(--text-accent);padding:12px 28px;border-radius:12px;font-size:15px;z-index:500;animation:fadeInOut 2.5s forwards;pointer-events:none;font-family:"Noto Serif KR",serif;text-align:center;white-space:nowrap;backdrop-filter:blur(4px);';
+  n.textContent=msg;
+  document.body.appendChild(n);
+  setTimeout(()=>n.remove(),2600);
+}
+
+// ===== MULTIPLAYER (다중 접속) =====
+const GUEST_COLORS=['#6a5a4a','#4a5a6a','#5a6a4a','#6a4a5a','#4a6a6a','#6a6a4a','#5a4a6a','#6a5a5a'];
+const MP={
+  peer:null, conns:[], isHost:false, isMP:false, roomCode:'', myId:'',
+  players:{}, gameStarted:false
+};
+
+function mpGenCode(){ return String(Math.floor(1000+Math.random()*9000)); }
+
+// Lobby UI
+$('mp-btn').addEventListener('click',()=>{
+  $('mp-lobby').style.display='flex';
+  $('mp-lobby-menu').style.display='block';
+  $('mp-host-view').style.display='none';
+  $('mp-join-view').style.display='none';
+});
+$('mp-back').addEventListener('click',()=>{
+  $('mp-lobby').style.display='none';
+  if(MP.peer){MP.peer.destroy();MP.peer=null;}
+});
+$('mp-create').addEventListener('click',mpCreateRoom);
+$('mp-join-btn').addEventListener('click',()=>{
+  $('mp-lobby-menu').style.display='none';
+  $('mp-join-view').style.display='block';
+  $('mp-input').focus();
+});
+$('mp-connect').addEventListener('click',mpJoinRoom);
+$('mp-input').addEventListener('keydown',e=>{if(e.key==='Enter')mpJoinRoom();});
+
+function mpCreateRoom(){
+  $('mp-lobby-menu').style.display='none';
+  $('mp-host-view').style.display='block';
+  MP.roomCode=mpGenCode();
+  $('mp-room-code').textContent=MP.roomCode;
+  $('mp-status').textContent='접속 대기 중...';
+  MP.isHost=true;
+  MP.myId='host';
+  MP.peer=new Peer('ggg-'+MP.roomCode);
+  MP.peer.on('open',()=>{
+    $('mp-status').textContent='방이 열렸습니다. 친구를 기다리는 중...';
+  });
+  MP.peer.on('connection',conn=>{
+    const pid='p'+Date.now().toString(36);
+    conn._pid=pid;
+    MP.conns.push(conn);
+    const count=MP.conns.length;
+    $('mp-status').textContent=count+'명 접속 중';
+    conn.on('open',()=>{
+      conn.send({t:'welcome',pid:pid,color:GUEST_COLORS[(count-1)%GUEST_COLORS.length]});
+      // Sync current state only if scene is already loaded
+      if(GS.sceneKey){
+        conn.send({t:'sync',ch:GS.chapter,key:GS.sceneKey,px:GS.px,hope:GS.hope,
+          items:GS.items.map(i=>({id:i.id,name:i.name,icon:i.icon,desc:i.desc}))});
+      }
+    });
+    conn.on('data',d=>{d._from=pid;mpOnHostData(d);});
+    conn.on('close',()=>{
+      MP.conns=MP.conns.filter(c=>c._pid!==pid);
+      delete MP.players[pid];
+      mpBroadcast({t:'leave',pid:pid});
+      removeGuestEl(pid);
+      $('mp-status').textContent=MP.conns.length+'명 접속 중';
+    });
+    if(!MP.gameStarted) mpStartGame();
+  });
+  MP.peer.on('error',e=>{
+    $('mp-status').textContent='오류: '+e.type;
+  });
+}
+
+function mpJoinRoom(){
+  const code=$('mp-input').value.trim();
+  if(code.length!==4){$('mp-join-status').textContent='4자리 코드를 입력하세요';return;}
+  $('mp-join-status').textContent='접속 중...';
+  MP.isHost=false;
+  MP.roomCode=code;
+  MP.peer=new Peer();
+  MP.peer.on('open',()=>{
+    const conn=MP.peer.connect('ggg-'+code);
+    MP.conns=[conn];
+    conn.on('open',()=>{
+      $('mp-join-status').textContent='접속 성공!';
+      mpStartGame();
+      conn.on('data',d=>mpOnGuestData(d));
+      conn.on('close',()=>{
+        MP.isMP=false;MP.conns=[];
+        $('mp-indicator').textContent='연결 끊김';
+        removeAllGuests();
+      });
+    });
+    conn.on('error',()=>{
+      $('mp-join-status').textContent='방을 찾을 수 없습니다';
+    });
+  });
+  MP.peer.on('error',e=>{
+    $('mp-join-status').textContent='오류: '+e.type;
+  });
+}
+
+function mpStartGame(){
+  if(MP.gameStarted)return;
+  MP.gameStarted=true;
+  MP.isMP=true;
+  $('mp-lobby').style.display='none';
+  $('title-screen').style.display='none';
+  $('hud').style.display='flex';
+  $('mp-indicator').style.display='block';
+  $('mp-indicator').textContent=(MP.isHost?'호스트':'게스트')+' (방: '+MP.roomCode+')';
+  initAudio();
+  showChapter(1,'ch1_orphanage',200);
+  gameLoop();
+  setInterval(mpSendPos,50);
+}
+
+// Host: broadcast to all guests
+function mpBroadcast(data){
+  MP.conns.forEach(c=>{if(c.open)c.send(data);});
+}
+// Guest: send to host
+function mpSendToHost(data){
+  if(MP.conns[0]&&MP.conns[0].open) MP.conns[0].send(data);
+}
+
+function mpSendPos(){
+  if(!MP.isMP)return;
+  const posData={t:'pos',pid:MP.myId,x:GS.px,f:GS.facing,w:!!$('player')?.classList.contains('walking'),j:GS.jumpY};
+  if(MP.isHost) mpBroadcast(posData);
+  else mpSendToHost(posData);
+}
+
+// Host receives data from a guest
+function mpOnHostData(d){
+  if(d.t==='pos'){
+    MP.players[d._from]={x:d.x,f:d.f,w:d.w,j:d.j};
+    updateGuestEl(d._from);
+    // Relay to all other guests
+    mpBroadcast({t:'pos',pid:d._from,x:d.x,f:d.f,w:d.w,j:d.j});
+  }
+}
+
+// Guest receives data from host
+function mpOnGuestData(d){
+  if(d.t==='welcome'){
+    MP.myId=d.pid;
+    MP.myColor=d.color;
+  }
+  if(d.t==='pos'&&d.pid!==MP.myId){
+    MP.players[d.pid]={x:d.x,f:d.f,w:d.w,j:d.j};
+    updateGuestEl(d.pid);
+  }
+  if(d.t==='pos'&&!d.pid){
+    // Host position
+    MP.players['host']={x:d.x,f:d.f,w:d.w,j:d.j};
+    updateGuestEl('host');
+  }
+  if(d.t==='leave'){
+    delete MP.players[d.pid];
+    removeGuestEl(d.pid);
+  }
+  if(d.t==='sync'){
+    GS.transitioning=false;
+    GS.chapter=d.ch;
+    GS.hope=d.hope;
+    $('hope-bar').style.width=d.hope+'%';
+    $('hope-label').textContent=d.hope;
+    if(d.items) d.items.forEach(item=>addItem(item));
+    buildScene(d.key);
+    GS.px=d.px;
+    const p=$('player');if(p)p.style.left=d.px+'px';
+    updateHUD();
+    $('scene').style.opacity=1;
+    $('chapter-overlay').classList.remove('show');
+  }
+  if(d.t==='dialogue') startDialogue(d.lines);
+  if(d.t==='scene' && d.key) loadScene(d.key,d.px);
+  if(d.t==='chapter' && d.target) showChapter(d.ch,d.target,d.px);
+  if(d.t==='hope'){
+    GS.hope=d.v;
+    $('hope-bar').style.width=GS.hope+'%';
+    $('hope-label').textContent=GS.hope;
+  }
+  if(d.t==='item') addItem(d.item);
+}
+
+function createGuestEl(pid){
+  const sc=$('scene');
+  if(!sc||document.getElementById('gp-'+pid))return;
+  const el=document.createElement('div');
+  el.id='gp-'+pid;
+  el.className='character';
+  const def=SCENES[GS.sceneKey];
+  const groundH=def?.ground?parseInt(def.ground.height)||80:80;
+  el.style.bottom=groundH+'px';
+  el.style.left='200px';
+  const idx=Object.keys(MP.players).indexOf(pid);
+  const col=GUEST_COLORS[Math.abs(idx)%GUEST_COLORS.length];
+  el.innerHTML='<div class="guest-label">여행자</div><div class="guest-sprite"><div class="guest-body" style="background:linear-gradient(135deg,'+col+',#444)"></div><div class="guest-head" style="background:linear-gradient(135deg,'+col+',#555)"></div><div class="guest-horn"></div><div class="guest-ear" style="background:'+col+'"></div><div class="guest-eye"></div><div class="noden-leg fl" style="background:'+col+'"></div><div class="noden-leg fr" style="background:'+col+'"></div><div class="noden-leg bl" style="background:'+col+'"></div><div class="noden-leg br" style="background:'+col+'"></div></div>';
+  sc.appendChild(el);
+}
+
+function updateGuestEl(pid){
+  let g=document.getElementById('gp-'+pid);
+  if(!g) createGuestEl(pid);
+  g=document.getElementById('gp-'+pid);
+  if(!g)return;
+  const p=MP.players[pid];
+  if(!p)return;
+  g.style.left=p.x+'px';
+  g.classList.toggle('walking',p.w);
+  g.classList.toggle('face-left',p.f==='left');
+  const def=SCENES[GS.sceneKey];
+  const groundH=def?.ground?parseInt(def.ground.height)||80:80;
+  g.style.bottom=(groundH+(p.j||0))+'px';
+}
+
+function removeGuestEl(pid){
+  const g=document.getElementById('gp-'+pid);
+  if(g)g.remove();
+}
+
+function removeAllGuests(){
+  Object.keys(MP.players).forEach(pid=>removeGuestEl(pid));
+  MP.players={};
+}
+
+// Override buildScene to recreate all guests
+const _origBuildScene=buildScene;
+buildScene=function(key){
+  _origBuildScene(key);
+  if(MP.isMP) Object.keys(MP.players).forEach(pid=>createGuestEl(pid));
+};
+
+// Host syncs dialogue, scene, chapter, hope, items to all guests
+const _origStartDialogue=startDialogue;
+startDialogue=function(lines){
+  _origStartDialogue(lines);
+  if(MP.isMP&&MP.isHost){
+    try{
+      const safe=dialogueQueue.map(l=>{
+        if(typeof l.text==='function') return{speaker:l.speaker||'',text:l.text()};
+        if(l.speaker!==undefined) return{speaker:l.speaker||'',text:l.text||''};
+        return null;
+      }).filter(Boolean);
+      mpBroadcast({t:'dialogue',lines:safe});
+    }catch(e){}
+  }
+};
+
+const _origLoadScene=loadScene;
+loadScene=function(key,px){
+  _origLoadScene(key,px);
+  if(MP.isMP&&MP.isHost) mpBroadcast({t:'scene',key:key,px:px});
+};
+
+const _origShowChapter=showChapter;
+showChapter=function(ch,target,px){
+  _origShowChapter(ch,target,px);
+  if(MP.isMP&&MP.isHost) mpBroadcast({t:'chapter',ch:ch,target:target,px:px});
+};
+
+const _origChangeHope=changeHope;
+changeHope=function(delta){
+  _origChangeHope(delta);
+  if(MP.isMP&&MP.isHost) mpBroadcast({t:'hope',v:GS.hope});
+};
+
+const _origAddItem=addItem;
+addItem=function(item){
+  _origAddItem(item);
+  if(MP.isMP&&MP.isHost) mpBroadcast({t:'item',item:{id:item.id,name:item.name,icon:item.icon,desc:item.desc}});
+};
+
+// ===== CHAT =====
+let chatOpen=false, chatTyping=false;
+const CHAT_NAMES=['노든','치쿠','앙가부','부엉이','코끼리','펭귄','물범','수달'];
+let myNick=CHAT_NAMES[Math.floor(Math.random()*CHAT_NAMES.length)];
+
+function chatToggle(){
+  if(!MP.isMP)return;
+  chatOpen=!chatOpen;
+  $('chat-box').classList.toggle('open',chatOpen);
+  $('chat-input-wrap').style.display=chatOpen?'block':'none';
+  $('chat-hint').style.display=chatOpen?'none':'block';
+  if(chatOpen){
+    chatTyping=true;
+    $('chat-input').focus();
+  } else {
+    chatTyping=false;
+    $('chat-input').blur();
+  }
+}
+
+function chatAddMsg(name,text,isSystem){
+  const msgs=$('chat-msgs');
+  const el=document.createElement('div');
+  el.className='chat-msg'+(isSystem?' system':'');
+  if(isSystem){
+    el.textContent=text;
+  } else {
+    el.innerHTML='<span class="chat-name">'+name+'</span>'+text.replace(/</g,'&lt;');
+  }
+  msgs.appendChild(el);
+  msgs.scrollTop=msgs.scrollHeight;
+  // Auto remove after 15s if chat not open
+  setTimeout(()=>{if(el.parentNode)el.style.opacity='0.3';},12000);
+  setTimeout(()=>{if(el.parentNode)el.remove();},20000);
+}
+
+function chatSend(){
+  const input=$('chat-input');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value='';
+  chatAddMsg(myNick,text);
+  const data={t:'chat',name:myNick,text:text};
+  if(MP.isHost) mpBroadcast(data);
+  else mpSendToHost(data);
+}
+
+// Show chat box when MP starts
+const _origMpStartGame=mpStartGame;
+mpStartGame=function(){
+  _origMpStartGame();
+  $('chat-box').style.display='block';
+  chatAddMsg('','함께 여정을 시작합니다! (T키로 채팅)',true);
+};
+
+// Handle chat in multiplayer data
+const _origOnHostData=mpOnHostData;
+mpOnHostData=function(d){
+  _origOnHostData(d);
+  if(d.t==='chat'){
+    chatAddMsg(d.name,d.text);
+    mpBroadcast({t:'chat',name:d.name,text:d.text,_from:d._from});
+  }
+  if(d.t==='nick'){
+    chatAddMsg('',d.name+'님이 입장했습니다',true);
+    mpBroadcast({t:'sys',text:d.name+'님이 입장했습니다'});
+  }
+};
+
+const _origOnGuestData=mpOnGuestData;
+mpOnGuestData=function(d){
+  _origOnGuestData(d);
+  if(d.t==='chat'&&d.name!==myNick) chatAddMsg(d.name,d.text);
+  if(d.t==='sys') chatAddMsg('',d.text,true);
+};
+
+// Chat input handling
+$('chat-input').addEventListener('keydown',e=>{
+  e.stopPropagation();
+  if(e.key==='Enter'){
+    chatSend();
+    chatToggle();
+  }
+  if(e.key==='Escape') chatToggle();
+});
+$('chat-input').addEventListener('keyup',e=>e.stopPropagation());
+
+// T key opens chat (override in main keydown)
+document.addEventListener('keydown',e=>{
+  if(e.key==='t'||e.key==='T'){
+    if(!chatTyping&&MP.isMP&&!GS.dialogueActive&&!GS.choiceActive&&!GS.minigameActive){
+      e.preventDefault();
+      chatToggle();
+    }
+  }
+});
+
+// Send nick on join
+const _origMpJoinRoom=mpJoinRoom;
+mpJoinRoom=function(){
+  const _origConn=MP.conns;
+  _origMpJoinRoom();
+  // After connection, send nickname
+  const checkSend=setInterval(()=>{
+    if(MP.conns[0]&&MP.conns[0].open){
+      MP.conns[0].send({t:'nick',name:myNick});
+      clearInterval(checkSend);
+    }
+  },200);
+};
 </script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
