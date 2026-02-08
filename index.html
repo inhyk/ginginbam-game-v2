@@ -604,6 +604,23 @@ function buildScene(key){
       sc.appendChild(el);
     });
   }
+  // Walls
+  if(def.walls){
+    def.walls.forEach(w=>{
+      const el=document.createElement('div');
+      el.className='scene-wall';
+      el.style.position='absolute';
+      el.style.left=w.x+'px';
+      el.style.width=w.w+'px';
+      el.style.height=w.h+'px';
+      const groundH=def.ground?parseInt(def.ground.height)||80:80;
+      el.style.bottom=groundH+'px';
+      el.style.background=w.bg||'linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))';
+      el.style.borderRadius='3px 3px 0 0';
+      el.style.pointerEvents='none';
+      sc.appendChild(el);
+    });
+  }
   // NPCs
   if(def.npcs){
     def.npcs.forEach(npc=>{
@@ -753,7 +770,18 @@ function gameLoop(){
       const def=SCENES[GS.sceneKey];
       const minX=def?.bounds?.left??20;
       const maxX=def?.bounds?.right??(window.innerWidth-60);
-      GS.px=Math.max(minX, Math.min(maxX, GS.px+dx));
+      let newX=Math.max(minX, Math.min(maxX, GS.px+dx));
+      // Wall collision
+      if(def?.walls){
+        const pw=40;
+        for(const w of def.walls){
+          if(GS.jumpY<w.h&&newX+pw>w.x&&newX<w.x+w.w){
+            if(dx>0) newX=w.x-pw;
+            else newX=w.x+w.w;
+          }
+        }
+      }
+      GS.px=newX;
       GS.facing=dx>0?'right':'left';
       const p=$('player');
       if(p){
@@ -1313,6 +1341,11 @@ const SCENES={
     grassColor:'linear-gradient(to top,#3a3020,#5a4a30)',
     music:'orphanage',
     bounds:{left:20,right:900},
+    walls:[
+      {x:250,w:20,h:24,bg:'linear-gradient(180deg,#5a4a30,#3a2a18)'},
+      {x:550,w:16,h:20,bg:'linear-gradient(180deg,#5a4a30,#3a2a18)'},
+      {x:750,w:22,h:28,bg:'linear-gradient(180deg,#5a4a30,#3a2a18)'}
+    ],
     decorations:[
       {style:'left:100px;bottom:90px;width:80px;height:60px;background:linear-gradient(135deg,#4a3a28,#3a2a1a);border-radius:8px 8px 0 0;opacity:0.6;',html:'<div style="position:absolute;top:10px;left:15px;width:12px;height:15px;background:rgba(255,200,100,0.3);border-radius:2px;"></div>'},
       {style:'left:400px;bottom:90px;width:120px;height:50px;background:linear-gradient(135deg,#5a4a30,#4a3a20);border-radius:6px;opacity:0.5;'},
@@ -1357,6 +1390,11 @@ const SCENES={
     grassCount:35,
     music:'savanna',
     bounds:{left:20,right:1000},
+    walls:[
+      {x:300,w:18,h:22,bg:'linear-gradient(180deg,#4a5a28,#2a3a18)'},
+      {x:600,w:24,h:30,bg:'linear-gradient(180deg,#4a5a28,#2a3a18)'},
+      {x:850,w:16,h:18,bg:'linear-gradient(180deg,#4a5a28,#2a3a18)'}
+    ],
     decorations:[
       {style:'left:200px;bottom:80px;width:4px;height:100px;background:#4a3a20;',html:'<div style="position:absolute;top:-20px;left:-20px;width:44px;height:30px;background:radial-gradient(ellipse,#3a5a20,transparent);border-radius:50%;"></div>'},
       {style:'left:700px;bottom:80px;width:4px;height:80px;background:#4a3a20;',html:'<div style="position:absolute;top:-15px;left:-15px;width:34px;height:25px;background:radial-gradient(ellipse,#3a5a20,transparent);border-radius:50%;"></div>'}
@@ -1427,6 +1465,11 @@ const SCENES={
     ground:{height:'70px',bg:'linear-gradient(180deg,#3a3a3a,#2a2a2a)'},
     music:'zoo',
     bounds:{left:30,right:850},
+    walls:[
+      {x:200,w:20,h:35,bg:'linear-gradient(180deg,#6a6a6a,#4a4a4a)'},
+      {x:450,w:24,h:26,bg:'linear-gradient(180deg,#6a6a6a,#4a4a4a)'},
+      {x:700,w:18,h:32,bg:'linear-gradient(180deg,#6a6a6a,#4a4a4a)'}
+    ],
     decorations:[
       // Cage bars
       ...[0,1,2,3,4,5,6,7,8,9,10,11,12].map(i=>({
@@ -1500,6 +1543,11 @@ const SCENES={
     ground:{height:'70px',bg:'linear-gradient(180deg,#3a2a20,#2a1a10)'},
     music:'escape',
     bounds:{left:20,right:900},
+    walls:[
+      {x:180,w:22,h:26,bg:'linear-gradient(180deg,#5a2a10,#3a1808)'},
+      {x:480,w:18,h:20,bg:'linear-gradient(180deg,#5a2a10,#3a1808)'},
+      {x:720,w:24,h:32,bg:'linear-gradient(180deg,#5a2a10,#3a1808)'}
+    ],
     decorations:[
       // Fire/smoke effects
       ...[0,1,2,3,4].map(i=>({
@@ -1562,6 +1610,11 @@ const SCENES={
     grassColor:'linear-gradient(to top,#1a2a18,#2a3a22)',
     music:'forest',
     bounds:{left:20,right:900},
+    walls:[
+      {x:160,w:16,h:22,bg:'linear-gradient(180deg,#2a3a22,#1a2a18)'},
+      {x:420,w:20,h:28,bg:'linear-gradient(180deg,#2a3a22,#1a2a18)'},
+      {x:680,w:18,h:24,bg:'linear-gradient(180deg,#2a3a22,#1a2a18)'}
+    ],
     decorations:[
       // Dark trees
       ...[0,1,2,3].map(i=>({
@@ -1617,6 +1670,12 @@ const SCENES={
     grassCount:15,
     music:'journey',
     bounds:{left:20,right:1200},
+    walls:[
+      {x:200,w:18,h:20,bg:'linear-gradient(180deg,#4a4a5a,#2a2a3a)'},
+      {x:500,w:22,h:26,bg:'linear-gradient(180deg,#4a4a5a,#2a2a3a)'},
+      {x:800,w:16,h:22,bg:'linear-gradient(180deg,#4a4a5a,#2a2a3a)'},
+      {x:1050,w:20,h:24,bg:'linear-gradient(180deg,#4a4a5a,#2a2a3a)'}
+    ],
     decorations:[
       {style:'left:50%;top:20%;width:60px;height:60px;background:radial-gradient(circle,rgba(255,255,200,0.15),transparent);border-radius:50%;'},
     ],
@@ -1671,6 +1730,10 @@ const SCENES={
     stars:50,
     music:'farewell',
     bounds:{left:20,right:800},
+    walls:[
+      {x:220,w:18,h:22,bg:'linear-gradient(180deg,#4a3a4a,#2a1a2a)'},
+      {x:520,w:20,h:26,bg:'linear-gradient(180deg,#4a3a4a,#2a1a2a)'}
+    ],
     decorations:[
       // Faint dawn on horizon
       {style:'left:0;bottom:70px;width:100%;height:40px;background:linear-gradient(180deg,transparent,rgba(60,40,60,0.15));pointer-events:none;'}
@@ -1733,6 +1796,10 @@ const SCENES={
     ground:{height:'60px',bg:'linear-gradient(180deg,#c0b090,#a09070)'},
     music:'sea',
     bounds:{left:20,right:900},
+    walls:[
+      {x:300,w:20,h:18,bg:'linear-gradient(180deg,#b0a080,#908060)'},
+      {x:600,w:24,h:22,bg:'linear-gradient(180deg,#b0a080,#908060)'}
+    ],
     decorations:[
       // Sun
       {style:'right:100px;top:60px;width:80px;height:80px;background:radial-gradient(circle,rgba(255,220,150,0.8),rgba(255,180,100,0.3),transparent);border-radius:50%;'},
