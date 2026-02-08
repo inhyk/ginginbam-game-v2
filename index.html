@@ -39,8 +39,13 @@
 --hope-color:#d0b060;--skin-name:"오래된 책";
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sans KR',sans-serif;overflow:hidden;width:100vw;height:calc(var(--vh,1vh) * 100);touch-action:none;user-select:none;-webkit-user-select:none;}
-#game{position:relative;width:100vw;height:calc(var(--vh,1vh) * 100);overflow:hidden;}
+body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sans KR',sans-serif;overflow:hidden;width:100vw;height:100vh;touch-action:none;user-select:none;-webkit-user-select:none;}
+#game{position:relative;width:100vw;height:100vh;overflow:hidden;}
+#mobile-notice{display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:var(--bg-primary);z-index:999;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;}
+#mobile-notice .mn-icon{font-size:48px;margin-bottom:20px;}
+#mobile-notice .mn-title{font-family:'Noto Serif KR',serif;font-size:22px;color:var(--text-primary);margin-bottom:12px;}
+#mobile-notice .mn-desc{font-size:14px;color:var(--text-secondary);line-height:1.6;}
+@media(max-width:768px){#mobile-notice{display:flex;}#title-screen{display:none!important;}}
 #scene{position:absolute;top:0;left:0;width:100%;height:100%;transition:opacity 0.5s;}
 .scene-bg{position:absolute;top:0;left:0;width:100%;height:100%;}
 /* HUD */
@@ -321,6 +326,12 @@ body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sa
 </head>
 <body>
 <div id="game">
+  <!-- Mobile Notice -->
+  <div id="mobile-notice">
+    <div class="mn-icon">&#128187;</div>
+    <div class="mn-title">컴퓨터로 플레이해주세요</div>
+    <div class="mn-desc">이 게임은 키보드 조작이 필요합니다.<br>PC 또는 노트북에서 접속해주세요.</div>
+  </div>
   <!-- Title -->
   <div id="title-screen">
     <div id="title-stars"></div>
@@ -446,12 +457,6 @@ body{background:var(--bg-primary);color:var(--text-primary);font-family:'Noto Sa
   </div>
 </div>
 <script>
-// ===== MOBILE VIEWPORT FIX =====
-function setVH(){document.documentElement.style.setProperty('--vh',window.innerHeight*0.01+'px');}
-setVH();
-window.addEventListener('resize',setVH);
-window.addEventListener('orientationchange',()=>setTimeout(setVH,100));
-
 // ===== GAME ENGINE =====
 const $ = id => document.getElementById(id);
 const GS = {
